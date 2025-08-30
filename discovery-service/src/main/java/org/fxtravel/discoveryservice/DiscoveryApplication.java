@@ -1,4 +1,4 @@
-package org.example.discoveryservice;
+package org.fxtravel.discoveryservice;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
