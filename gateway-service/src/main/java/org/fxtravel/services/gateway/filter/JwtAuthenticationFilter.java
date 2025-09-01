@@ -22,7 +22,15 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
 
         // 登录接口、注册接口放行
-        if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/register") || path.startsWith("/api/auth/logout")) {
+        if (path.startsWith("/api/auth/login") ||
+                path.startsWith("/api/auth/register") ||
+                path.startsWith("/api/auth/logout") ||
+                path.startsWith("/api/payment") ||
+                path.matches("^/api/hotel/orders/[^/]+$") ||
+                path.matches("^/api/train/orders/[^/]+$") ||
+                path.startsWith("/api/train/meal/status") ||
+                path.startsWith("api/train/by-id") ||
+                path.startsWith("/api/train/order/get")) {
             return chain.filter(exchange);
         }
 

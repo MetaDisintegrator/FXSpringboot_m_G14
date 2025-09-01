@@ -31,12 +31,16 @@ public class TrainSeatController {
 
     // 按出发时间排序查询车次接口
     @PostMapping("/seat/by-departure-time")
-    public ResponseEntity<?> searchTrainByDepartureTime(@Valid @RequestBody SearchTrainRequest request,
-                                                        BindingResult bindingResult,
-                                                        HttpSession session) {
+    public ResponseEntity<?> searchTrainByDepartureTime(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody SearchTrainRequest request,
+                                                        BindingResult bindingResult) {
 
-        ResponseEntity<? extends Map<String, ?>> errors = userClient.check(bindingResult, session);
-        if (errors != null) return errors;
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(Map.of("errors", errors));
+        }
 
         try {
             List<TrainSearchResult> results = trainSeatService.findByRouteAndTimeOrderByTime(

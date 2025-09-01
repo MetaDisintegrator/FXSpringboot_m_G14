@@ -35,13 +35,13 @@ public class RoomOrderController {
     private HotelMapper hotelMapper;
     @Autowired
     private RoomMapper roomMapper;
-    //@Autowired
-    //private UserClient userClient;
+
 
     @PostMapping("/room/get")
-    public ResponseEntity<?> getRoom(@Valid @RequestBody BookHotelRequest request,
+    public ResponseEntity<?> getRoom(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody BookHotelRequest request,
                                        BindingResult bindingResult,
                                        HttpSession session) {
+
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getFieldErrors()
                     .stream()
@@ -102,17 +102,7 @@ public class RoomOrderController {
     }
 
     @PostMapping("/refund")
-    public ResponseEntity<?> refund(@Valid @RequestBody PaymentRequest request,
-                                    BindingResult bindingResult, HttpSession session) {
-
-        if (bindingResult.hasErrors()) {
-            List<String> errors = bindingResult.getFieldErrors()
-                    .stream()
-                    .map(FieldError::getDefaultMessage)
-                    .toList();
-            return ResponseEntity.badRequest().body(Map.of("errors", errors));
-        }
-
+    public ResponseEntity<?> refund(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody PaymentRequest request){
         return ResponseEntity.ok(paymentService.refundPayment(request.getOrderNumber(), request.getData()));
     }
 }

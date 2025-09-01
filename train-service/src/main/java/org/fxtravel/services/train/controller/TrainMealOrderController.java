@@ -45,8 +45,7 @@ public class TrainMealOrderController {
     private TrainMealMapper trainMealMapper;
 
     @GetMapping("/orders/{userId}")
-    public ResponseEntity<?> getOrdersByUser(@PathVariable Integer userId,
-                                                                HttpSession session) {
+    public ResponseEntity<?> getOrdersByUser(@RequestHeader("X-User-Id") String userID,@PathVariable Integer userId) {
 
 
         List<TrainMealOrder> orders = trainMealOrderService.getOrdersByUser(userId);
@@ -71,9 +70,7 @@ public class TrainMealOrderController {
     }
 
     @GetMapping("/orders/by-ticket/{seatOrderId}")
-    public ResponseEntity<?> getOrdersBySeatOrder(
-            @PathVariable Integer seatOrderId, HttpSession session) {
-
+    public ResponseEntity<?> getOrdersBySeatOrder(@RequestHeader("X-User-Id") String userId, @PathVariable Integer seatOrderId) {
 
         List<TrainMealOrder> orders = trainMealOrderService.getOrdersBySeatOrder(seatOrderId);
         return ResponseEntity.ok(Map.of(
@@ -83,19 +80,26 @@ public class TrainMealOrderController {
     }
 
     @PostMapping("/get")
-    public ResponseEntity<?> createOrder(@Valid @RequestBody TrainMealOrderDTO orderDTO
-            , BindingResult bindingResult, HttpSession session) {
+    public ResponseEntity<?> createOrder(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody TrainMealOrderDTO orderDTO
+            , BindingResult bindingResult) {
 
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(Map.of("errors", errors));
+        }
 
         TrainSeatOrder seat = trainSeatOrderMapper.selectById(orderDTO.getTicketReservationId());
         if (seat == null || seat.getStatus() != E_PaymentStatus.COMPLETED) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                     "error", "未在对应列车上购票"));
         }
-
+        Integer intUserId = Integer.valueOf(userId);
         // 必须有购票
         TrainMeal meal = trainMealService.getMealById(orderDTO.getTrainMealId());
-        if (!trainSeatOrderMapper.existsByTrainAndUser(meal.getTrainId(), user.getId())) {
+        if (!trainSeatOrderMapper.existsByTrainAndUser(meal.getTrainId(), intUserId)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                     "error", "未在对应列车上购票"));
         }
@@ -123,9 +127,15 @@ public class TrainMealOrderController {
     }
 
     @PostMapping("/refund")
-    public ResponseEntity<?> refund(@Valid @RequestBody PaymentRequest request,
-                                    BindingResult bindingResult, HttpSession session) {
-
+    public ResponseEntity<?> refund(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody PaymentRequest request,
+                                    BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(Map.of("errors", errors));
+        }
         return ResponseEntity.ok(paymentService.refundPayment(request.getOrderNumber(), request.getData()));
     }
 }

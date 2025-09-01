@@ -1,8 +1,6 @@
 package org.fxtravel.services.train.controller;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.fxtravel.services.train.client.UserClient;
 import org.fxtravel.services.train.dto.PaymentRequest;
 import org.fxtravel.services.train.entitiy.PaymentResultDTO;
 import org.fxtravel.services.train.entitiy.Train;
@@ -40,31 +38,18 @@ public class TrainSeatOrderController {
     private TrainMapper trainMapper;
     @Autowired
     private TrainMealOrderMapper trainMealOrderMapper;
-    @Autowired
-    UserClient userClient;
 
     // 根据座次生成车票接口
     @PostMapping("/ticket/get")
-    public ResponseEntity<?> getTicket(@Valid @RequestBody GetTicketRequest request,
-                                       BindingResult bindingResult,
-                                       HttpSession session) {
-//        if (bindingResult.hasErrors()) {
-//            List<String> errors = bindingResult.getFieldErrors()
-//                    .stream()
-//                    .map(FieldError::getDefaultMessage)
-//                    .toList();
-//            return ResponseEntity.badRequest().body(Map.of("errors", errors));
-//        }
-//
-//        User user = (User) session.getAttribute("user");
-//        if (user == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "未登录"));
-//        }
-//
-//        // 验证用户只能为自己生成车票（除非是管理员）
-//        if (!user.getRole().equals(Role.ADMIN) && user.getId() != (request.getUserId())) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "无权限为其他用户生成车票"));
-//        }
+    public ResponseEntity<?> getTicket(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody GetTicketRequest request,
+                                       BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(Map.of("errors", errors));
+        }
 
         try {
             TrainSeatOrder order = trainSeatOrderService.createOrder(request);
@@ -127,11 +112,16 @@ public class TrainSeatOrderController {
     }
 
     @PostMapping("/refund")
-    public ResponseEntity<?> refund(@Valid @RequestBody PaymentRequest request,
-                                    BindingResult bindingResult, HttpSession session) {
+    public ResponseEntity<?> refund(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody PaymentRequest request,
+                                    BindingResult bindingResult) {
 
-        ResponseEntity<? extends Map<String, ?>> errors = userClient.check(bindingResult, session);
-        if (errors != null) return errors;
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(Map.of("errors", errors));
+        }
 
         TrainSeatOrder order = trainSeatOrderService.getOrderByNumber(request.getOrderNumber());
         if (order == null) {
