@@ -1,6 +1,7 @@
 package org.fxtravel.services.payment.event;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 import java.util.Set;
@@ -10,42 +11,40 @@ import java.util.concurrent.Executors;
 
 @Service
 public class EventCenterImpl implements EventCenter {
-    private final Map<EventType, Set<EventListener<?>>> listeners = new ConcurrentHashMap<>();
+    private final Map<EventType, Set<String>> callbackUrls = new ConcurrentHashMap<>();
     private final Executor asyncExecutor = Executors.newFixedThreadPool(4);
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
-    public <T> void subscribe(EventType eventType, EventListener<T> listener) {
-        listeners.computeIfAbsent(eventType, k -> ConcurrentHashMap.newKeySet())
-                .add(listener);
+    public void subscribe(EventType eventType, String callbackUrl) {
+        callbackUrls.computeIfAbsent(eventType, k -> ConcurrentHashMap.newKeySet())
+                .add(callbackUrl);
     }
 
     @Override
-    public <T> void unsubscribe(EventType eventType, EventListener<T> listener) {
-        Set<EventListener<?>> eventListeners = listeners.get(eventType);
-        if (eventListeners != null) {
-            eventListeners.remove(listener);
+    public void unsubscribe(EventType eventType, String callbackUrl) {
+        Set<String> urls = callbackUrls.get(eventType);
+        if (urls != null) {
+            urls.remove(callbackUrl);
         }
     }
 
     @Override
-    public <T> void publish(EventType eventType, T data) {
-        Set<EventListener<?>> eventListeners = listeners.get(eventType);
-        if (eventListeners != null) {
-            for (EventListener<?> listener : eventListeners) {
-                @SuppressWarnings("unchecked")
-                EventListener<T> typedListener = (EventListener<T>) listener;
+    public void publish(EventType eventType, Object data) {
+        Set<String> urls = callbackUrls.get(eventType);
+        if (urls != null) {
+            for (String url : urls) {
                 try {
-                    typedListener.onEvent(data);
+                    restTemplate.postForObject(url, data, Void.class);
                 } catch (Exception e) {
-                    // 记录错误但不要中断其他监听器
-                    System.err.println("Error handling event: " + e.getMessage());
+                    System.err.println("Error calling callback URL: " + url + ", error: " + e.getMessage());
                 }
             }
         }
     }
 
     @Override
-    public <T> void publishAsync(EventType eventType, T data) {
+    public void publishAsync(EventType eventType, Object data) {
         asyncExecutor.execute(() -> publish(eventType, data));
     }
 }

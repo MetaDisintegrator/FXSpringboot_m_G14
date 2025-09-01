@@ -1,10 +1,13 @@
 package org.fxtravel.services.payment.controller;
 
+import org.fxtravel.services.payment.dto.EventPublishRequest;
+import org.fxtravel.services.payment.dto.EventSubscriptionRequest;
 import org.fxtravel.services.payment.event.EventCenter;
 import org.fxtravel.services.payment.event.EventListener;
 import org.fxtravel.services.payment.event.EventType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,22 +19,22 @@ public class EventController {
     private EventCenter eventCenter;
 
     @PostMapping("/subscribe")
-    public <T> void subscribe(EventType eventType, EventListener<T> listener){
-        eventCenter.subscribe(eventType, listener);
-    };
+    public void subscribe(@RequestBody EventSubscriptionRequest request) {
+        eventCenter.subscribe(request.getEventType(), request.getCallbackUrl());
+    }
 
     @PostMapping("/unsubscribe")
-    public <T> void unsubscribe(EventType eventType, EventListener<T> listener) {
-        eventCenter.unsubscribe(eventType, listener);
+    public void unsubscribe(@RequestBody EventSubscriptionRequest request) {
+        eventCenter.unsubscribe(request.getEventType(), request.getCallbackUrl());
     }
 
     @PostMapping("/publish")
-    public <T> void publish(EventType eventType, T data) {
-        eventCenter.publish(eventType, data);
+    public <T> void publish(@RequestBody EventPublishRequest<T> request) {
+        eventCenter.publish(request.getEventType(), request.getData());
     }
 
     @PostMapping("/publishAsync")
-    public <T> void publishAsync(EventType eventType, T data){
-        eventCenter.publishAsync(eventType, data);
+    public <T> void publishAsync(@RequestBody EventPublishRequest<T> request) {
+        eventCenter.publishAsync(request.getEventType(), request.getData());
     }
 }

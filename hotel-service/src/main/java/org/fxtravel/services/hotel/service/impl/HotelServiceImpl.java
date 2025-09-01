@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 import org.fxtravel.services.hotel.client.EventClient;
+import org.fxtravel.services.payment.dto.EventSubscriptionRequest;
 import org.fxtravel.services.payment.event.EventType;
 import org.fxtravel.services.payment.event.data.PaymentInfo;
 import org.fxtravel.services.hotel.dto.HotelSearchResult;
@@ -29,17 +30,28 @@ public class HotelServiceImpl implements HotelService {
     private RoomMapper roomMapper;
     @Autowired
     private EventClient eventClient;
+    // 不需要 @Value 注入，直接使用服务名称
+    private static final String HOTEL_SERVICE_NAME = "hotel-service";
 
+    // 在订阅事件时使用服务名称构建回调路径
     @PostConstruct
     public void init() {
-        // 注册回调，确保在服务启动时就注册
-        eventClient.subscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
+        // 使用服务名称而不是完整URL
+        String callbackPath = "/api/events/payment-status-change";
+        EventSubscriptionRequest request = new EventSubscriptionRequest();
+        request.setEventType(EventType.HT_STATUS_CHANGED);
+        request.setCallbackUrl("http://" + HOTEL_SERVICE_NAME + callbackPath);
+        eventClient.subscribe(request);
     }
 
     @PreDestroy
     public void destroy() {
-        // 服务关闭时注销回调
-        eventClient.unsubscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
+        // 注销回调URL
+        String callbackPath = "/api/events/payment-status-change";
+        EventSubscriptionRequest request = new EventSubscriptionRequest();
+        request.setEventType(EventType.HT_STATUS_CHANGED);
+        request.setCallbackUrl("http://" + HOTEL_SERVICE_NAME + callbackPath);
+        eventClient.unsubscribe(request);
     }
 
     // 处理支付状态变更的回调方法
