@@ -3,7 +3,8 @@ package org.fxtravel.services.hotel.controller;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
-import org.fxtravel.common.util.AuthUtil;
+import org.fxtravel.services.hotel.client.PaymentClient;
+import org.fxtravel.services.hotel.client.UserClient;
 import org.fxtravel.services.hotel.dto.BookHotelRequest;
 import org.fxtravel.services.hotel.dto.RoomOrderResponse;
 import org.fxtravel.services.hotel.entitiy.RoomOrder;
@@ -12,7 +13,6 @@ import org.fxtravel.services.hotel.mapper.RoomMapper;
 import org.fxtravel.services.hotel.service.inter.RoomOrderService;
 import org.fxtravel.services.payment.dto.PaymentRequest;
 import org.fxtravel.services.payment.entitiy.PaymentResultDTO;
-import org.fxtravel.services.payment.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,25 +29,22 @@ public class RoomOrderController {
     @Autowired
     private RoomOrderService roomOrderService;
     @Autowired
-    private PaymentService paymentService;
+    private PaymentClient paymentClient;
     @Autowired
     private HotelMapper hotelMapper;
     @Autowired
     private RoomMapper roomMapper;
+    @Autowired
+    private UserClient userClient;
 
     @PostMapping("/room/get")
     public ResponseEntity<?> getRoom(@Valid @RequestBody BookHotelRequest request,
                                        BindingResult bindingResult,
                                        HttpSession session) {
-        User user = (User) session.getAttribute("user");
 
-        ResponseEntity<? extends Map<String, ?>> errors = AuthUtil.check(bindingResult, user);
+
+        ResponseEntity<? extends Map<String, ?>> errors = userClient.check(bindingResult, session);
         if (errors != null) return errors;
-
-        // 验证用户只能为自己操作
-        if (!user.getRole().equals(Role.ADMIN) && user.getId() != (request.getUserId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "无权限为其他用户操作"));
-        }
 
         try {
             RoomOrder order = roomOrderService.createOrder(request);
@@ -73,7 +70,7 @@ public class RoomOrderController {
         }
 
         PaymentResultDTO result = order.getRelatedPaymentId() != null ?
-                paymentService.checkPaymentStatus(order.getRelatedPaymentId()) : null;
+                paymentClient.checkPaymentStatus(order.getRelatedPaymentId()) : null;
 
         return ResponseEntity.ok(result);
     }
@@ -103,11 +100,10 @@ public class RoomOrderController {
     @PostMapping("/refund")
     public ResponseEntity<?> refund(@Valid @RequestBody PaymentRequest request,
                                     BindingResult bindingResult, HttpSession session) {
-        User user = (User) session.getAttribute("user");
 
-        ResponseEntity<? extends Map<String, ?>> errors = AuthUtil.check(bindingResult, user);
+        ResponseEntity<? extends Map<String, ?>> errors = userClient.check(bindingResult, session);
         if (errors != null) return errors;
 
-        return ResponseEntity.ok(paymentService.refundPayment(request.getOrderNumber(), request.getData()));
+        return ResponseEntity.ok(paymentClient.refundPayment(request.getOrderNumber(), request.getData()));
     }
 }

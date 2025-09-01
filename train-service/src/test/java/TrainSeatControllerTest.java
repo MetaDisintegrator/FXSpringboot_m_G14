@@ -1,12 +1,12 @@
 package java;
 
 import jakarta.servlet.http.HttpSession;
-import org.fxtravel.fxspringboot.controller.trainseat.TrainSeatController;
-import org.fxtravel.fxspringboot.pojo.dto.train.SearchTrainRequest;
-import org.fxtravel.fxspringboot.pojo.dto.train.TrainSearchResult;
-import org.fxtravel.fxspringboot.pojo.entities.Train;
+import org.fxtravel.services.train.controller.TrainSeatController;
+import org.fxtravel.services.train.dto.SearchTrainRequest;
+import org.fxtravel.services.train.dto.TrainSearchResult;
+import org.fxtravel.services.train.entitiy.Train;
 import org.fxtravel.fxspringboot.pojo.entities.User;
-import org.fxtravel.fxspringboot.service.inter.trainseat.TrainSeatService;
+import org.fxtravel.services.train.service.inter.TrainSeatService;
 import org.fxtravel.fxspringboot.utils.AuthUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

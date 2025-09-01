@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.fxtravel.services.hotel.client.UserClient;
 import org.fxtravel.services.hotel.dto.HotelSearchResult;
 import org.fxtravel.services.hotel.dto.SearchHotelRequest;
 import org.fxtravel.services.hotel.service.inter.HotelService;
@@ -23,14 +24,15 @@ import java.util.Map;
 public class HotelController {
     @Autowired
     private final HotelService hotelService;
+    @Autowired
+    private UserClient userClient;
 
     @PostMapping("/room/by-dest")
     public ResponseEntity<?> searchHotel(@Valid @RequestBody SearchHotelRequest request,
                                                         BindingResult bindingResult,
                                                         HttpSession session) {
-        User user = (User) session.getAttribute("user");
 
-        ResponseEntity<? extends Map<String, ?>> errors = AuthUtil.check(bindingResult, user);
+        ResponseEntity<? extends Map<String, ?>> errors = userClient.check(bindingResult, session);
         if (errors != null) return errors;
 
         try {

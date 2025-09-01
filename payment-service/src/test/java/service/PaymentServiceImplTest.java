@@ -6,7 +6,7 @@ import org.fxtravel.services.payment.common.E_PaymentType;
 import org.fxtravel.services.payment.entitiy.PaymentResultDTO;
 import org.fxtravel.services.payment.entitiy.payment;
 import org.fxtravel.services.payment.mapper.PaymentMapper;
-import org.fxtravel.services.payment.service.PaymentServiceImpl;
+import org.fxtravel.services.payment.service.impl.PaymentServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

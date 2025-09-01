@@ -2,13 +2,11 @@ package java;
 
 import org.fxtravel.fxspringboot.event.EventCenter;
 import org.fxtravel.fxspringboot.event.data.PaymentInfo;
-import org.fxtravel.fxspringboot.mapper.trainmeal.TrainMealMapper;
-import org.fxtravel.fxspringboot.pojo.entities.trainmeal.TrainMeal;
-import org.fxtravel.fxspringboot.service.impl.trainmeal.TrainMealServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
+import org.fxtravel.services.train.mapper.TrainMealMapper;
+import org.fxtravel.services.train.entitiy.TrainMeal;
+import org.fxtravel.services.train.service.impl.TrainMealServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;

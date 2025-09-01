@@ -3,10 +3,11 @@ package org.fxtravel.services.hotel.service.impl;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
+import org.fxtravel.services.hotel.client.EventClient;
+import org.fxtravel.services.hotel.client.PaymentClient;
 import org.fxtravel.services.payment.common.E_PaymentStatus;
 import org.fxtravel.services.payment.common.E_PaymentType;
 import org.fxtravel.services.payment.entitiy.payment;
-import org.fxtravel.services.payment.event.EventCenter;
 import org.fxtravel.services.payment.event.EventType;
 import org.fxtravel.services.payment.event.data.PaymentInfo;
 import org.fxtravel.services.hotel.entitiy.*;
@@ -14,7 +15,6 @@ import org.fxtravel.services.hotel.dto.*;
 import org.fxtravel.services.hotel.mapper.RoomOrderMapper;
 import org.fxtravel.services.hotel.service.inter.HotelService;
 import org.fxtravel.services.hotel.service.inter.RoomOrderService;
-import org.fxtravel.services.payment.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,21 +32,20 @@ public class RoomOrderServiceImpl implements RoomOrderService {
     @Autowired
     HotelService hotelService;
     @Autowired
-    PaymentService paymentService;
-
+    PaymentClient paymentClient;
     @Autowired
-    private EventCenter eventCenter;
+    EventClient eventClient;
 
     @PostConstruct
     public void init() {
         // 注册回调，确保在服务启动时就注册
-        eventCenter.subscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
+        eventClient.subscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
     }
 
     @PreDestroy
     public void destroy() {
         // 服务关闭时注销回调
-        eventCenter.unsubscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
+        eventClient.unsubscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
     }
 
     // 处理支付状态变更的回调方法
@@ -93,7 +92,7 @@ public class RoomOrderServiceImpl implements RoomOrderService {
         roomOrderMapper.insert(order);
 
         // 4. 创建支付记录
-        payment payment = paymentService.createPayment(
+        payment payment = paymentClient.createPayment(
                 order.getUserId(),
                 E_PaymentType.HOTEL,
                 order.getTotalAmount(),  // 传递计算后的总价
@@ -108,11 +107,11 @@ public class RoomOrderServiceImpl implements RoomOrderService {
         roomOrderMapper.updateById(order);
 
         // 6. 模拟支付流程（保持原有逻辑）
-        paymentService.simulatePaymentProcess(
+        paymentClient.simulatePaymentProcess(
                 payment.getOrderNumber(),
                 30,
-                () -> hotelService.checkAndGet(room.getId(), 1, null),
-                () -> null
+                hotelService.checkAndGet(room.getId(), 1, null),
+                null
         );
 
         return order;

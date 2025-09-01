@@ -107,13 +107,6 @@
             <artifactId>spring-session-data-redis</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.FXTravel</groupId>
-            <artifactId>fxtravel-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        
-
     </dependencies>
 
     <build>

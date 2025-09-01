@@ -5,10 +5,13 @@ import org.fxtravel.services.user.service.inter.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.fxtravel.services.user.dto.*;
 import org.fxtravel.services.user.entity.User;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -78,4 +81,20 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/check")
+    public ResponseEntity<? extends Map<String, ?>> check(BindingResult bindingResult, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(FieldError::getDefaultMessage)
+                    .toList();
+            return ResponseEntity.badRequest().body(Map.of("errors", errors));
+        }
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "未登录"));
+        }
+        return null;
+    }
 }

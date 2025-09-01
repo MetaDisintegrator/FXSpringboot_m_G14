@@ -1,15 +1,15 @@
 package service;
 
-import org.fxtravel.fxspringboot.common.E_PaymentType;
-import org.fxtravel.fxspringboot.mapper.hotel.RoomOrderMapper;
-import org.fxtravel.fxspringboot.pojo.dto.hotel.BookHotelRequest;
-import org.fxtravel.fxspringboot.pojo.entities.Hotel;
-import org.fxtravel.fxspringboot.pojo.entities.Room;
-import org.fxtravel.fxspringboot.pojo.entities.RoomOrder;
-import org.fxtravel.fxspringboot.pojo.entities.payment;
-import org.fxtravel.fxspringboot.service.impl.hotel.HotelServiceImpl;
-import org.fxtravel.fxspringboot.service.impl.hotel.RoomOrderServiceImpl;
-import org.fxtravel.fxspringboot.service.inter.common.PaymentService;
+import org.fxtravel.services.hotel.dto.BookHotelRequest;
+import org.fxtravel.services.hotel.entitiy.Hotel;
+import org.fxtravel.services.hotel.entitiy.Room;
+import org.fxtravel.services.hotel.entitiy.RoomOrder;
+import org.fxtravel.services.hotel.mapper.RoomOrderMapper;
+import org.fxtravel.services.hotel.service.impl.HotelServiceImpl;
+import org.fxtravel.services.hotel.service.impl.RoomOrderServiceImpl;
+import org.fxtravel.services.payment.common.E_PaymentType;
+import org.fxtravel.services.payment.entitiy.payment;
+import org.fxtravel.services.payment.service.inter.PaymentService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,8 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

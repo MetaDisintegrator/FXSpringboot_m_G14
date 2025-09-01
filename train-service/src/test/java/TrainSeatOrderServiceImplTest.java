@@ -3,15 +3,15 @@ package java;
 
 import org.fxtravel.fxspringboot.event.EventCenter;
 import org.fxtravel.fxspringboot.mapper.PaymentMapper;
-import org.fxtravel.fxspringboot.mapper.trainseat.TrainSeatMapper;
-import org.fxtravel.fxspringboot.mapper.trainseat.TrainSeatOrderMapper;
-import org.fxtravel.fxspringboot.pojo.dto.train.GetTicketRequest;
-import org.fxtravel.fxspringboot.pojo.entities.TrainSeat;
-import org.fxtravel.fxspringboot.pojo.entities.TrainSeatOrder;
+import org.fxtravel.services.train.mapper.TrainSeatMapper;
+import org.fxtravel.services.train.mapper.TrainSeatOrderMapper;
+import org.fxtravel.services.train.dto.GetTicketRequest;
+import org.fxtravel.services.train.entitiy.TrainSeat;
+import org.fxtravel.services.train.entitiy.TrainSeatOrder;
 import org.fxtravel.fxspringboot.pojo.entities.payment;
-import org.fxtravel.fxspringboot.service.impl.trainseat.TrainSeatOrderServiceImpl;
+import org.fxtravel.services.train.service.impl.TrainSeatOrderServiceImpl;
 import org.fxtravel.fxspringboot.service.inter.common.PaymentService;
-import org.fxtravel.fxspringboot.service.inter.trainseat.TrainSeatService;
+import org.fxtravel.services.train.service.inter.TrainSeatService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

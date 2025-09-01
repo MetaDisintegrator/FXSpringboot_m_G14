@@ -1,10 +1,10 @@
 package java;
 
 import jakarta.servlet.http.HttpSession;
-import org.fxtravel.fxspringboot.controller.trainmeal.TrainMealController;
+import org.fxtravel.services.train.controller.TrainMealController;
 import org.fxtravel.fxspringboot.pojo.entities.User;
-import org.fxtravel.fxspringboot.pojo.entities.trainmeal.TrainMeal;
-import org.fxtravel.fxspringboot.service.inter.trainmeal.TrainMealService;
+import org.fxtravel.services.train.entitiy.TrainMeal;
+import org.fxtravel.services.train.service.inter.TrainMealService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

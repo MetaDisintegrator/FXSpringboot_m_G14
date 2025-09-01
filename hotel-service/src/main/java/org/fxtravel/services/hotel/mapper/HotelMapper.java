@@ -6,6 +6,7 @@ import org.fxtravel.services.hotel.entitiy.Hotel;
 
 import java.util.List;
 
+@Mapper
 public interface HotelMapper extends BaseMapper<Hotel> {
 
     @Select("SELECT * FROM hotel WHERE destination = #{destination} ORDER BY rating DESC")

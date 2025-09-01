@@ -1,13 +1,14 @@
 package service;
 
-import org.fxtravel.fxspringboot.event.EventCenter;
-import org.fxtravel.fxspringboot.event.data.PaymentInfo;
-import org.fxtravel.fxspringboot.mapper.hotel.HotelMapper;
-import org.fxtravel.fxspringboot.mapper.hotel.RoomMapper;
-import org.fxtravel.fxspringboot.pojo.dto.hotel.HotelSearchResult;
-import org.fxtravel.fxspringboot.pojo.entities.Hotel;
-import org.fxtravel.fxspringboot.pojo.entities.Room;
-import org.fxtravel.fxspringboot.service.impl.hotel.HotelServiceImpl;
+import org.fxtravel.services.hotel.dto.HotelSearchResult;
+import org.fxtravel.services.hotel.entitiy.Hotel;
+import org.fxtravel.services.hotel.entitiy.Room;
+import org.fxtravel.services.hotel.mapper.HotelMapper;
+import org.fxtravel.services.hotel.mapper.RoomMapper;
+import org.fxtravel.services.hotel.service.impl.HotelServiceImpl;
+import org.fxtravel.services.payment.common.E_PaymentStatus;
+import org.fxtravel.services.payment.event.EventCenter;
+import org.fxtravel.services.payment.event.data.PaymentInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -136,7 +137,7 @@ class HotelServiceImplTest {
     @Test
     void testHandlePaymentStatusChange_FailedOrRefunded() {
         PaymentInfo info = mock(PaymentInfo.class);
-        when(info.getNewStatus()).thenReturn(org.fxtravel.fxspringboot.common.E_PaymentStatus.FAILED);
+        when(info.getNewStatus()).thenReturn(E_PaymentStatus.FAILED);
         when(info.getGoodId()).thenReturn(1);
         when(info.getQuantity()).thenReturn(2);
         hotelService.handlePaymentStatusChange(info);
@@ -146,7 +147,7 @@ class HotelServiceImplTest {
     @Test
     void testHandlePaymentStatusChange_OtherStatus() {
         PaymentInfo info = mock(PaymentInfo.class);
-        when(info.getNewStatus()).thenReturn(org.fxtravel.fxspringboot.common.E_PaymentStatus.COMPLETED);
+        when(info.getNewStatus()).thenReturn(E_PaymentStatus.COMPLETED);
         hotelService.handlePaymentStatusChange(info);
         verify(roomMapper, never()).add(anyInt(), anyInt());
     }

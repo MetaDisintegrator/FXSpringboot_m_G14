@@ -21,7 +21,6 @@
         <module>train-service</module>
         <module>hotel-service</module>
         <module>payment-service</module>
-        <module>fxtravel-common</module>
         <module>gateway-service</module>
     </modules>
 

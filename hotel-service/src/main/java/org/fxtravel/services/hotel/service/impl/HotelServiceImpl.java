@@ -3,7 +3,7 @@ package org.fxtravel.services.hotel.service.impl;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
-import org.fxtravel.services.payment.event.EventCenter;
+import org.fxtravel.services.hotel.client.EventClient;
 import org.fxtravel.services.payment.event.EventType;
 import org.fxtravel.services.payment.event.data.PaymentInfo;
 import org.fxtravel.services.hotel.dto.HotelSearchResult;
@@ -28,18 +28,18 @@ public class HotelServiceImpl implements HotelService {
     @Autowired
     private RoomMapper roomMapper;
     @Autowired
-    private EventCenter eventCenter;
+    private EventClient eventClient;
 
     @PostConstruct
     public void init() {
         // 注册回调，确保在服务启动时就注册
-        eventCenter.subscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
+        eventClient.subscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
     }
 
     @PreDestroy
     public void destroy() {
         // 服务关闭时注销回调
-        eventCenter.unsubscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
+        eventClient.unsubscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
     }
 
     // 处理支付状态变更的回调方法
