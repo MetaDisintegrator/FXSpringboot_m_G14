@@ -3,17 +3,19 @@ package org.fxtravel.services.train.service.impl;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.transaction.Transactional;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
-import org.fxtravel.services.payment.common.E_PaymentType;
-import org.fxtravel.services.payment.entitiy.payment;
+import org.fxtravel.services.train.common.E_PaymentStatus;
+import org.fxtravel.services.train.common.E_PaymentType;
+import org.fxtravel.services.train.entitiy.payment;
+import org.fxtravel.services.train.event.*;
+import org.fxtravel.services.train.event.data.PaymentInfo;
 import org.fxtravel.services.train.mapper.TrainMealOrderMapper;
 import org.fxtravel.services.train.dto.TrainMealOrderDTO;
 import org.fxtravel.services.train.entitiy.TrainMeal;
 import org.fxtravel.services.train.entitiy.TrainMealOrder;
+import org.fxtravel.services.train.service.inter.PaymentService;
 import org.fxtravel.services.train.service.inter.TrainMealOrderService;
 import org.fxtravel.services.train.service.inter.TrainMealService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,7 +23,6 @@ import java.util.List;
 
 @Service
 @Transactional
-@DependsOn("paymentServiceImpl")
 public class TrainMealOrderServiceImpl implements TrainMealOrderService {
 
     @Autowired

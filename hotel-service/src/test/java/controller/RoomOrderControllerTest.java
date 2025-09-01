@@ -37,7 +37,7 @@ public class RoomOrderControllerTest {
     private RoomOrderController controller;
     private HttpSession session;
     private BindingResult bindingResult;
-    private UserClient userClient;
+    //private UserClient userClient;
 
     @BeforeEach
     public void setUp() {

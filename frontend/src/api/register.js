@@ -188,8 +188,12 @@ export const resetByOldPassword = (data) => {
  *
  * 说明：已将原来的 GET 请求改为 POST，无需请求体，后端对应接口应作相应调整。
  */
-export const getCurrentUser = () => {
-    return request.get('/user/userdata')
+export function getCurrentUser(token) {
+    return axios.get('/api/user/userdata', {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
 }
 
 /**

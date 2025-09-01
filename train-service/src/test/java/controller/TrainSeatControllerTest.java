@@ -1,4 +1,4 @@
-package java;
+package controller;
 
 import jakarta.servlet.http.HttpSession;
 import org.fxtravel.services.train.controller.TrainSeatController;

@@ -1,6 +1,5 @@
 package org.fxtravel.services.hotel.controller;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -8,7 +7,6 @@ import org.fxtravel.services.hotel.dto.HotelSearchResult;
 import org.fxtravel.services.hotel.dto.SearchHotelRequest;
 import org.fxtravel.services.hotel.service.inter.HotelService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -24,13 +22,10 @@ import java.util.Map;
 public class HotelController {
     @Autowired
     private final HotelService hotelService;
-    //@Autowired
-    //private UserClient userClient;
 
     @PostMapping("/room/by-dest")
-    public ResponseEntity<?> searchHotel(@Valid @RequestBody SearchHotelRequest request,
-                                                        BindingResult bindingResult,
-                                                        HttpSession session) {
+    public ResponseEntity<?> searchHotel(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody SearchHotelRequest request,
+                                                        BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getFieldErrors()

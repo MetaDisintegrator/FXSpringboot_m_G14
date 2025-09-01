@@ -2,15 +2,12 @@
 import {defineStore} from 'pinia'
 import {getCurrentUser as apiGetCurrentUser,
     login as apiLogin,
-    logout as apiLogout,
     register as apiRegister,
 } from '../api/register'
 
 export const useUserStore = defineStore('user', {
     state: () => ({
-        // 登录状态
         isLoggedIn: false,
-        // 当前用户信息（从后端 /user/userdata 拉取）
         userInfo: {
             id: null,
             email: '',
@@ -18,7 +15,8 @@ export const useUserStore = defineStore('user', {
             verified: false,
             gender: '',
             role: ''
-        }
+        },
+        token: null, // 新增：JWT Token
     }),
 
     actions: {
@@ -28,18 +26,19 @@ export const useUserStore = defineStore('user', {
          */
         async login(payload) {
             try {
-                // 调用后端 /auth/login（HttpSession + Cookie）
-                await apiLogin({
+                const res = await apiLogin({
                     email: payload.email,
                     password: payload.password,
                 })
+                // 保存 token
+                this.token = res.data.token
+                localStorage.setItem('jwtToken', this.token)
 
-                // 登录成功后，从后端 /user/userdata 获取用户信息
+                // 拉取用户信息
                 await this.fetchCurrentUser()
-                console.log("login success")
+                this.isLoggedIn = true
                 return true
             } catch (err) {
-                // 捕获后端返回的错误信息
                 this.resetState()
                 return false
             }
@@ -74,40 +73,28 @@ export const useUserStore = defineStore('user', {
          * 2. 退出登录：调用后端 /auth/logout，然后清空本地状态
          */
         async logout() {
-            try {
-                await apiLogout()
-                console.log("logout success")
-            } catch (err) {
-                // 即使后端出错，也继续清除本地状态
-                console.warn('后端登出失败，但本地状态仍会清空：', err)
-            }
             this.resetState()
+            localStorage.removeItem('jwtToken')
         },
 
         /**
          * 3. 刷新/初始化时调用：尝试拉取当前用户信息，若成功则标记已登录，否则重置状态
          */
         async fetchCurrentUser() {
+            if (!this.token) return this.resetState()
             try {
-                this.userInfo = (await apiGetCurrentUser()).data
+                const res = await apiGetCurrentUser(this.token) // 注意：apiGetCurrentUser 需在请求头携带 token
+                this.userInfo = res.data
                 this.isLoggedIn = true
-                console.log("fetchCurrentUser")
-                console.log(this.userInfo)
-                localStorage.setItem("userStore", JSON.stringify(
-                    {
-                        isLoggedIn: this.isLoggedIn,
-                        userInfo: this.userInfo,
-                    }))
-                console.log("user saved")
             } catch (err) {
-                // 取不到用户信息，就认为未登录
                 this.resetState()
             }
         },
 
-        // 新增：重置状态的辅助方法
+
         resetState() {
             this.isLoggedIn = false
+            this.token = null
             this.userInfo = {
                 id: null,
                 email: '',
@@ -116,22 +103,15 @@ export const useUserStore = defineStore('user', {
                 gender: '',
                 role: ''
             }
-            localStorage.removeItem('userStore')
         },
 
-        // 新增：从 localStorage 初始化状态
         async initializeFromStorage() {
-            const savedState = localStorage.getItem('userStore')
-            console.log("get savedState")
-            console.log(savedState)
-            if (savedState && !this.isLoggedIn) {
-                const {isLoggedIn, userInfo} = JSON.parse(savedState)
-                await this.login({
-                    email: userInfo.email,
-                    password: userInfo.password,
-                })
+            const token = localStorage.getItem('jwtToken')
+            if (token) {
+                this.token = token
+                await this.fetchCurrentUser()
             }
-        },
+        }
     },
 
     getters: {

@@ -82,27 +82,4 @@ public class AuthControllerTest {
         Mockito.verify(session, Mockito.never()).setAttribute(Mockito.eq("user"), Mockito.any());
     }
 
-    // 正向测试：登出成功
-    @Test
-    void logout_success() {
-        Mockito.doNothing().when(session).invalidate();
-
-        ResponseEntity<?> response = authController.logout(session);
-
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals("已登出", ((java.util.Map<?,?>)response.getBody()).get("message"));
-        Mockito.verify(session).invalidate();
-    }
-
-    // 反向测试：登出时 session 异常
-    @Test
-    void logout_sessionException() {
-        Mockito.doThrow(new IllegalStateException("Session already invalidated"))
-                .when(session).invalidate();
-
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
-            authController.logout(session);
-        });
-        assertEquals("Session already invalidated", exception.getMessage());
-    }
 }

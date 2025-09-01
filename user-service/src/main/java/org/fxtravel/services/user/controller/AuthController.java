@@ -2,6 +2,7 @@ package org.fxtravel.services.user.controller;
 
 import jakarta.servlet.http.HttpSession;
 import org.fxtravel.services.user.service.inter.*;
+import org.fxtravel.services.user.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,8 @@ import java.util.Map;
 public class AuthController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerAccount(@RequestBody RegisterRequest request, HttpSession session) {
@@ -49,16 +52,14 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "邮箱或密码错误"));
         }
+        String token = jwtUtil.generateToken(user.getId().toString());
 
-        session.setAttribute("user", user);
-
-        return ResponseEntity.ok(Map.of("message", "登录成功"));
+        return ResponseEntity.ok(Map.of("mess", "登录成功", "token", token));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpSession session) {
-        session.invalidate(); // 销毁 Session
-        return ResponseEntity.ok(Map.of("message", "已登出"));
+    public ResponseEntity<?> logout() {
+        return ResponseEntity.ok(Map.of("message", "登出成功"));
     }
 
     @PostMapping("/resetPassword/ByVerificationCode")

@@ -4,7 +4,7 @@ package org.fxtravel.services.train.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
+import org.fxtravel.services.train.common.E_PaymentStatus;
 import org.fxtravel.services.train.entitiy.TrainSeatOrder;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;

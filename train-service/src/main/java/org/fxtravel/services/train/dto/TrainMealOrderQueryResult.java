@@ -4,7 +4,7 @@ package org.fxtravel.services.train.dto;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.Data;
-import org.fxtravel.services.payment.common.E_PaymentStatus;;
+import org.fxtravel.services.train.common.E_PaymentStatus;
 
 import java.time.LocalDateTime;
 

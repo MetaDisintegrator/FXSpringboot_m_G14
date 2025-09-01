@@ -25,13 +25,6 @@ public class TrainMealController {
     @GetMapping("/{trainId}")
     public ResponseEntity<?> getUserMeals(@PathVariable Integer trainId,
                                           HttpSession session) {
-        User user = (User) session.getAttribute("user");
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "未登录"));
-        }
-
-
 
         List<TrainMeal> results = trainMealService.getMealsByTrain4User(trainId);
         return ResponseEntity.ok(Map.of(

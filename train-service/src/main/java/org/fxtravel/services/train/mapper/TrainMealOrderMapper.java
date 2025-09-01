@@ -4,7 +4,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
+
+import org.fxtravel.services.train.common.E_PaymentStatus;
 import org.fxtravel.services.train.entitiy.TrainMealOrder;
 
 import java.util.List;

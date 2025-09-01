@@ -1,4 +1,4 @@
-package java;
+package service;
 
 
 import org.fxtravel.fxspringboot.event.EventCenter;

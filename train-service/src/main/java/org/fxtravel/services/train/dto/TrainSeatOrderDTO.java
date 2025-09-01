@@ -3,7 +3,7 @@ package org.fxtravel.services.train.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
+import org.fxtravel.services.train.common.E_PaymentStatus;
 import org.fxtravel.services.train.entitiy.Train;
 import org.fxtravel.services.train.entitiy.TrainSeat;
 

@@ -27,19 +27,15 @@ spring:
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/api/auth/**
-        - id: payment-service
-          uri: lb://payment-service
+            - Path=/api/auth/**,/api/user/**
+        - id: train-service
+          uri: lb://train-service
           predicates:
-            - Path=/api/payment/**
-          filters:
-            - RewritePath=/department/(?<path>.*), /$\{path}
+            - Path=/api/train/**
         - id: hotel-service
           uri: lb://hotel-service
           predicates:
             - Path=/api/hotel/**
-          filters:
-            - RewritePath=/organization/(?<path>.*), /$\{path}
 
 management:
   tracing:

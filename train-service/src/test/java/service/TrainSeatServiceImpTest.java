@@ -1,4 +1,4 @@
-package java;
+package service;
 
 import org.fxtravel.fxspringboot.common.E_PaymentStatus;
 import org.fxtravel.fxspringboot.event.EventCenter;

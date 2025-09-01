@@ -1,6 +1,5 @@
 package org.fxtravel.services.train.service.inter;
 
-import org.fxtravel.services.payment.service.inter.GoodService;
 import org.fxtravel.services.train.dto.TrainSearchResult;
 import org.fxtravel.services.train.entitiy.Train;
 

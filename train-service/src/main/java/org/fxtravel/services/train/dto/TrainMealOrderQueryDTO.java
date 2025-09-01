@@ -2,6 +2,7 @@ package org.fxtravel.services.train.dto;
 
 import jakarta.annotation.Nullable;
 import lombok.Data;
+import org.fxtravel.services.train.common.E_PaymentStatus;
 
 import java.time.LocalDateTime;
 
