@@ -1,4 +1,4 @@
-package org.fxtravel.services.payment.common;
+package org.fxtravel.services.hotel.common;
 
 public enum E_PaymentStatus {
     IDLE,       // 未开启

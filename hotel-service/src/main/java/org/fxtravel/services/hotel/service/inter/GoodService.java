@@ -1,4 +1,4 @@
-package org.fxtravel.services.payment.service.inter;
+package org.fxtravel.services.hotel.service.inter;
 
 public interface GoodService {
     boolean checkAndGet(int id, int count, Object data);

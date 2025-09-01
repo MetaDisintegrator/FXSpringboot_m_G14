@@ -1,6 +1,6 @@
-package org.fxtravel.services.payment.dto;
+package org.fxtravel.services.hotel.dto;
 
-import org.fxtravel.services.payment.event.EventType;
+import org.fxtravel.services.hotel.event.EventType;
 
 public class EventSubscriptionRequest {
     private EventType eventType;

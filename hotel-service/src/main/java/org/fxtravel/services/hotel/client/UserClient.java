@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.Map;
 
-@FeignClient(name = "user-service")
-public interface UserClient {
-
-    @GetMapping("/api/auth/check")
-    public ResponseEntity<? extends Map<String, ?>> check(BindingResult bindingResult, HttpSession session);
-}
+//@FeignClient(name = "user-service")
+//public interface UserClient {
+//
+//    @GetMapping("/api/auth/check")
+//    public ResponseEntity<? extends Map<String, ?>> check(BindingResult bindingResult, HttpSession session);
+//}

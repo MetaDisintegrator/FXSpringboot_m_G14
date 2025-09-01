@@ -1,7 +1,8 @@
-package org.fxtravel.services.payment.entitiy;
+package org.fxtravel.services.hotel.entitiy;
 
 import lombok.Data;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
+import org.fxtravel.services.hotel.common.E_PaymentStatus;
+
 
 @Data
 public class PaymentResultDTO {

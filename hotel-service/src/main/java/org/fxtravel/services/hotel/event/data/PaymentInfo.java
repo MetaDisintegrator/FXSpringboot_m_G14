@@ -1,8 +1,8 @@
-package org.fxtravel.services.payment.event.data;
+package org.fxtravel.services.hotel.event.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
+import org.fxtravel.services.hotel.common.E_PaymentStatus;
 
 
 @Data

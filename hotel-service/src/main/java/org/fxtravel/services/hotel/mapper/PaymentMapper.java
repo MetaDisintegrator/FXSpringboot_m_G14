@@ -1,13 +1,14 @@
-package org.fxtravel.services.payment.mapper;
+package org.fxtravel.services.hotel.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
-import org.fxtravel.services.payment.common.E_PaymentType;
-import org.fxtravel.services.payment.dto.PaymentQueryDTO;
-import org.fxtravel.services.payment.entitiy.payment;
+import org.fxtravel.services.hotel.common.E_PaymentStatus;
+import org.fxtravel.services.hotel.common.E_PaymentType;
+import org.fxtravel.services.hotel.dto.PaymentQueryDTO;
+import org.fxtravel.services.hotel.entitiy.payment;
+
 
 import java.time.LocalDateTime;
 import java.util.List;

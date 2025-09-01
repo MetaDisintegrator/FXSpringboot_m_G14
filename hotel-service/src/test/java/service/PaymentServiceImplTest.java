@@ -1,12 +1,13 @@
 package service;
 
-import org.fxtravel.services.payment.event.EventCenter;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
-import org.fxtravel.services.payment.common.E_PaymentType;
-import org.fxtravel.services.payment.entitiy.PaymentResultDTO;
-import org.fxtravel.services.payment.entitiy.payment;
-import org.fxtravel.services.payment.mapper.PaymentMapper;
-import org.fxtravel.services.payment.service.impl.PaymentServiceImpl;
+
+import org.fxtravel.services.hotel.common.E_PaymentStatus;
+import org.fxtravel.services.hotel.common.E_PaymentType;
+import org.fxtravel.services.hotel.entitiy.PaymentResultDTO;
+import org.fxtravel.services.hotel.entitiy.payment;
+import org.fxtravel.services.hotel.event.EventCenter;
+import org.fxtravel.services.hotel.mapper.PaymentMapper;
+import org.fxtravel.services.hotel.service.impl.PaymentServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

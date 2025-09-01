@@ -1,9 +1,9 @@
-package org.fxtravel.services.payment.service.inter;
+package org.fxtravel.services.hotel.service.inter;
 
 
-import org.fxtravel.services.payment.common.E_PaymentType;
-import org.fxtravel.services.payment.entitiy.PaymentResultDTO;
-import org.fxtravel.services.payment.entitiy.payment;
+import org.fxtravel.services.hotel.common.E_PaymentType;
+import org.fxtravel.services.hotel.entitiy.PaymentResultDTO;
+import org.fxtravel.services.hotel.entitiy.payment;
 
 import java.util.function.Supplier;
 

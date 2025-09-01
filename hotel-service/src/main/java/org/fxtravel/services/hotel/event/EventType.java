@@ -1,4 +1,4 @@
-package org.fxtravel.services.payment.event;
+package org.fxtravel.services.hotel.event;
 
 /**
  * 事件类型标记接口

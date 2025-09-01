@@ -1,4 +1,4 @@
-package org.fxtravel.services.payment.event;
+package org.fxtravel.services.hotel.event;
 
 @FunctionalInterface
 public interface EventListener<T> {

@@ -1,9 +1,9 @@
 package controller;
 
 
-import org.fxtravel.services.payment.controller.PaymentController;
-import org.fxtravel.services.payment.dto.PaymentRequest;
-import org.fxtravel.services.payment.service.inter.PaymentService;
+import org.fxtravel.services.hotel.controller.PaymentController;
+import org.fxtravel.services.hotel.dto.PaymentRequest;
+import org.fxtravel.services.hotel.service.inter.PaymentService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

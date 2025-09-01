@@ -1,10 +1,11 @@
-package org.fxtravel.services.payment.entitiy;
+package org.fxtravel.services.hotel.entitiy;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.fxtravel.services.payment.common.*;
+import org.fxtravel.services.hotel.common.E_PaymentStatus;
+import org.fxtravel.services.hotel.common.E_PaymentType;
 
 import java.time.LocalDateTime;
 

@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import org.fxtravel.services.hotel.entitiy.RoomOrder;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
+import org.fxtravel.services.hotel.common.E_PaymentStatus;
 
 
 import java.util.List;

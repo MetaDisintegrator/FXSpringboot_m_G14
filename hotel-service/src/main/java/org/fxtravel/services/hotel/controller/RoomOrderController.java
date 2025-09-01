@@ -3,20 +3,21 @@ package org.fxtravel.services.hotel.controller;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
-import org.fxtravel.services.hotel.client.PaymentClient;
-import org.fxtravel.services.hotel.client.UserClient;
+//import org.fxtravel.services.hotel.client.UserClient;
 import org.fxtravel.services.hotel.dto.BookHotelRequest;
 import org.fxtravel.services.hotel.dto.RoomOrderResponse;
 import org.fxtravel.services.hotel.entitiy.RoomOrder;
 import org.fxtravel.services.hotel.mapper.HotelMapper;
 import org.fxtravel.services.hotel.mapper.RoomMapper;
+import org.fxtravel.services.hotel.service.inter.PaymentService;
 import org.fxtravel.services.hotel.service.inter.RoomOrderService;
-import org.fxtravel.services.payment.dto.PaymentRequest;
-import org.fxtravel.services.payment.entitiy.PaymentResultDTO;
+import org.fxtravel.services.hotel.dto.PaymentRequest;
+import org.fxtravel.services.hotel.entitiy.PaymentResultDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -29,22 +30,25 @@ public class RoomOrderController {
     @Autowired
     private RoomOrderService roomOrderService;
     @Autowired
-    private PaymentClient paymentClient;
+    private PaymentService paymentService;
     @Autowired
     private HotelMapper hotelMapper;
     @Autowired
     private RoomMapper roomMapper;
-    @Autowired
-    private UserClient userClient;
+    //@Autowired
+    //private UserClient userClient;
 
     @PostMapping("/room/get")
     public ResponseEntity<?> getRoom(@Valid @RequestBody BookHotelRequest request,
                                        BindingResult bindingResult,
                                        HttpSession session) {
-
-
-        ResponseEntity<? extends Map<String, ?>> errors = userClient.check(bindingResult, session);
-        if (errors != null) return errors;
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(FieldError::getDefaultMessage)
+                    .toList();
+            return ResponseEntity.badRequest().body(Map.of("errors", errors));
+        }
 
         try {
             RoomOrder order = roomOrderService.createOrder(request);
@@ -70,7 +74,7 @@ public class RoomOrderController {
         }
 
         PaymentResultDTO result = order.getRelatedPaymentId() != null ?
-                paymentClient.checkPaymentStatus(order.getRelatedPaymentId()) : null;
+                paymentService.checkPaymentStatus(order.getRelatedPaymentId()) : null;
 
         return ResponseEntity.ok(result);
     }
@@ -101,9 +105,14 @@ public class RoomOrderController {
     public ResponseEntity<?> refund(@Valid @RequestBody PaymentRequest request,
                                     BindingResult bindingResult, HttpSession session) {
 
-        ResponseEntity<? extends Map<String, ?>> errors = userClient.check(bindingResult, session);
-        if (errors != null) return errors;
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(FieldError::getDefaultMessage)
+                    .toList();
+            return ResponseEntity.badRequest().body(Map.of("errors", errors));
+        }
 
-        return ResponseEntity.ok(paymentClient.refundPayment(request.getOrderNumber(), request.getData()));
+        return ResponseEntity.ok(paymentService.refundPayment(request.getOrderNumber(), request.getData()));
     }
 }

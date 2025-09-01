@@ -1,4 +1,4 @@
-package org.fxtravel.services.payment.dto;
+package org.fxtravel.services.hotel.dto;
 
 import lombok.Data;
 

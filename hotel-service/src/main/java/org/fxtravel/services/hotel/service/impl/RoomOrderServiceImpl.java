@@ -3,18 +3,18 @@ package org.fxtravel.services.hotel.service.impl;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
-import org.fxtravel.services.hotel.client.EventClient;
-import org.fxtravel.services.hotel.client.PaymentClient;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
-import org.fxtravel.services.payment.common.E_PaymentType;
-import org.fxtravel.services.payment.dto.EventSubscriptionRequest;
-import org.fxtravel.services.payment.entitiy.payment;
-import org.fxtravel.services.payment.event.EventType;
-import org.fxtravel.services.payment.event.data.PaymentInfo;
+import org.fxtravel.services.hotel.common.E_PaymentStatus;
+import org.fxtravel.services.hotel.common.E_PaymentType;
+import org.fxtravel.services.hotel.dto.EventSubscriptionRequest;
+import org.fxtravel.services.hotel.entitiy.payment;
+import org.fxtravel.services.hotel.event.EventCenter;
+import org.fxtravel.services.hotel.event.EventType;
+import org.fxtravel.services.hotel.event.data.PaymentInfo;
 import org.fxtravel.services.hotel.entitiy.*;
 import org.fxtravel.services.hotel.dto.*;
 import org.fxtravel.services.hotel.mapper.RoomOrderMapper;
 import org.fxtravel.services.hotel.service.inter.HotelService;
+import org.fxtravel.services.hotel.service.inter.PaymentService;
 import org.fxtravel.services.hotel.service.inter.RoomOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,31 +32,22 @@ public class RoomOrderServiceImpl implements RoomOrderService {
     @Autowired
     HotelService hotelService;
     @Autowired
-    PaymentClient paymentClient;
+    PaymentService paymentService;
     @Autowired
-    private EventClient eventClient;
+    private EventCenter eventCenter;
     // 不需要 @Value 注入，直接使用服务名称
     private static final String HOTEL_SERVICE_NAME = "hotel-service";
 
-    // 在订阅事件时使用服务名称构建回调路径
     @PostConstruct
     public void init() {
-        // 使用服务名称而不是完整URL
-        String callbackPath = "/api/events/payment-status-change";
-        EventSubscriptionRequest request = new EventSubscriptionRequest();
-        request.setEventType(EventType.HT_STATUS_CHANGED);
-        request.setCallbackUrl("http://" + HOTEL_SERVICE_NAME + callbackPath);
-        eventClient.subscribe(request);
+        // 注册回调，确保在服务启动时就注册
+        eventCenter.subscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
     }
 
     @PreDestroy
     public void destroy() {
-        // 注销回调URL
-        String callbackPath = "/api/events/payment-status-change";
-        EventSubscriptionRequest request = new EventSubscriptionRequest();
-        request.setEventType(EventType.HT_STATUS_CHANGED);
-        request.setCallbackUrl("http://" + HOTEL_SERVICE_NAME + callbackPath);
-        eventClient.unsubscribe(request);
+        // 服务关闭时注销回调
+        eventCenter.unsubscribe(EventType.HT_STATUS_CHANGED, this::handlePaymentStatusChange);
     }
 
     // 处理支付状态变更的回调方法
@@ -103,7 +94,7 @@ public class RoomOrderServiceImpl implements RoomOrderService {
         roomOrderMapper.insert(order);
 
         // 4. 创建支付记录
-        payment payment = paymentClient.createPayment(
+        payment payment = paymentService.createPayment(
                 order.getUserId(),
                 E_PaymentType.HOTEL,
                 order.getTotalAmount(),  // 传递计算后的总价
@@ -118,11 +109,11 @@ public class RoomOrderServiceImpl implements RoomOrderService {
         roomOrderMapper.updateById(order);
 
         // 6. 模拟支付流程（保持原有逻辑）
-        paymentClient.simulatePaymentProcess(
+        paymentService.simulatePaymentProcess(
                 payment.getOrderNumber(),
                 30,
-                hotelService.checkAndGet(room.getId(), 1, null),
-                null
+                () -> hotelService.checkAndGet(room.getId(), 1, null),
+                () -> null
         );
 
         return order;

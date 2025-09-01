@@ -1,4 +1,4 @@
-package org.fxtravel.services.payment.common;
+package org.fxtravel.services.hotel.common;
 
 public enum E_PaymentType {
     TRAIN_TICKET, // 火车票

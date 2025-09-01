@@ -1,18 +1,18 @@
-package org.fxtravel.services.payment.service.impl;
+package org.fxtravel.services.hotel.service.impl;
 
 import jakarta.transaction.Transactional;
 
-import org.fxtravel.services.payment.event.EventCenter;
-import org.fxtravel.services.payment.event.EventType;
-import org.fxtravel.services.payment.event.data.PaymentInfo;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
-import org.fxtravel.services.payment.common.E_PaymentType;
-import org.fxtravel.services.payment.entitiy.PaymentResultDTO;
-import org.fxtravel.services.payment.entitiy.payment;
-import org.fxtravel.services.payment.mapper.PaymentMapper;
-import org.fxtravel.services.payment.service.inter.PaymentService;
+import org.fxtravel.services.hotel.common.E_PaymentStatus;
+import org.fxtravel.services.hotel.common.E_PaymentType;
+import org.fxtravel.services.hotel.entitiy.PaymentResultDTO;
+import org.fxtravel.services.hotel.entitiy.payment;
+import org.fxtravel.services.hotel.event.EventCenter;
+import org.fxtravel.services.hotel.event.EventType;
+import org.fxtravel.services.hotel.event.data.PaymentInfo;
+import org.fxtravel.services.hotel.service.inter.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.fxtravel.services.hotel.mapper.PaymentMapper;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

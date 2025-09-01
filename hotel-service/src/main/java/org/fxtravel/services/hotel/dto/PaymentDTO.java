@@ -1,9 +1,9 @@
-package org.fxtravel.services.payment.dto;
+package org.fxtravel.services.hotel.dto;
 
 import jakarta.annotation.Nullable;
 import lombok.Data;
-import org.fxtravel.services.payment.common.E_PaymentStatus;
-import org.fxtravel.services.payment.common.E_PaymentType;
+import org.fxtravel.services.hotel.common.E_PaymentStatus;
+import org.fxtravel.services.hotel.common.E_PaymentType;
 
 
 import java.time.LocalDateTime;
