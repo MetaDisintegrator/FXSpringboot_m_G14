@@ -67,7 +67,7 @@ public class TrainSeatOrderController {
     }
 
     @GetMapping("/ticket/{orderId}")
-    public ResponseEntity<PaymentResultDTO> getOrderPaymentStatus(@PathVariable Integer orderId) {
+    public ResponseEntity<PaymentResultDTO> getOrderPaymentStatus(@RequestHeader("X-User-Id") String userId, @PathVariable Integer orderId) {
         TrainSeatOrder order = trainSeatOrderService.getOrderById(orderId);
         if (order == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "id not found");
@@ -80,7 +80,7 @@ public class TrainSeatOrderController {
     }
 
     @GetMapping("/order/get/{userId}")
-    public ResponseEntity<List<TrainSeatOrderDTO>> getTicket(@PathVariable Integer userId) {
+    public ResponseEntity<List<TrainSeatOrderDTO>> getTicket(@RequestHeader("X-User-Id") String userID, @PathVariable Integer userId) {
         // 1. 获取用户订单
         List<TrainSeatOrder> orders = trainSeatOrderService.getOrdersByUserId(userId);
         if (orders.isEmpty()) {
@@ -112,7 +112,7 @@ public class TrainSeatOrderController {
     }
 
     @PostMapping("/refund")
-    public ResponseEntity<?> refund(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody PaymentRequest request,
+    public ResponseEntity<?> refund(@RequestHeader("X-User-Id") String userId, @Valid @RequestBody PaymentRequest request,
                                     BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {

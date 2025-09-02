@@ -82,20 +82,4 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/check")
-    public ResponseEntity<? extends Map<String, ?>> check(BindingResult bindingResult, HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (bindingResult.hasErrors()) {
-            List<String> errors = bindingResult.getFieldErrors()
-                    .stream()
-                    .map(FieldError::getDefaultMessage)
-                    .toList();
-            return ResponseEntity.badRequest().body(Map.of("errors", errors));
-        }
-
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "未登录"));
-        }
-        return null;
-    }
 }

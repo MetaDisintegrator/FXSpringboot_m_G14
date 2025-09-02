@@ -1,6 +1,5 @@
 package org.fxtravel.services.train.controller;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 import org.fxtravel.services.train.common.E_PaymentStatus;
@@ -115,7 +114,7 @@ public class TrainMealOrderController {
     }
 
     @GetMapping("/status/{orderId}")
-    public ResponseEntity<?> getOrderPaymentStatus(@PathVariable Integer orderId) {
+    public ResponseEntity<?> getOrderPaymentStatus(@RequestHeader("X-User-Id") String userId, @PathVariable Integer orderId) {
         TrainMealOrder order = trainMealOrderService.getOrderById(orderId);
         if (order == null) {
             return ResponseEntity.notFound().build();
@@ -127,7 +126,7 @@ public class TrainMealOrderController {
     }
 
     @PostMapping("/refund")
-    public ResponseEntity<?> refund(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody PaymentRequest request,
+    public ResponseEntity<?> refund(@RequestHeader("X-User-Id") String userId, @Valid @RequestBody PaymentRequest request,
                                     BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getFieldErrors()

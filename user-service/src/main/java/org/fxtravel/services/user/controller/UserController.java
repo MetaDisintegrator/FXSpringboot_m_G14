@@ -21,7 +21,7 @@ public class UserController {
     @GetMapping("/userdata")
     public ResponseEntity<?> getUserInfo(@RequestHeader("X-User-Id") String userId) {
         try {
-            int id = Integer.parseInt(userId);  // ✅ Java 中转换 String -> int
+            int id = Integer.parseInt(userId);
             User user = userMapper.selectById(id);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

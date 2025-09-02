@@ -25,7 +25,7 @@ public class TrainSeatController {
     UserClient userClient;
 
     @GetMapping("/by-id/{id}")
-    public Train getTrain(@PathVariable Integer id) {
+    public Train getTrain(@RequestHeader("X-User-Id") String userId, @PathVariable Integer id) {
         return trainSeatService.getTrainById(id);
     }
 
@@ -61,12 +61,16 @@ public class TrainSeatController {
     }
 
     @PostMapping("/seat/by-duration-time")
-    public ResponseEntity<?> searchTrainByDuration(@Valid @RequestBody SearchTrainRequest request,
-                                                        BindingResult bindingResult,
-                                                        HttpSession session) {
+    public ResponseEntity<?> searchTrainByDuration(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody SearchTrainRequest request,
+                                                        BindingResult bindingResult) {
 
-        ResponseEntity<? extends Map<String, ?>> errors = userClient.check(bindingResult, session);
-        if (errors != null) return errors;
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(Map.of("errors", errors));
+        }
 
         try {
             List<TrainSearchResult> results = trainSeatService.findByRouteAndTimeOrderByDuration(

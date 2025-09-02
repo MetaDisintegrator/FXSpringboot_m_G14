@@ -39,8 +39,7 @@ public class RoomOrderController {
 
     @PostMapping("/room/get")
     public ResponseEntity<?> getRoom(@RequestHeader("X-User-Id") String userId,@Valid @RequestBody BookHotelRequest request,
-                                       BindingResult bindingResult,
-                                       HttpSession session) {
+                                       BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
             List<String> errors = bindingResult.getFieldErrors()
@@ -67,7 +66,7 @@ public class RoomOrderController {
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<?> getOrderPaymentStatus(@PathVariable Integer orderId) {
+    public ResponseEntity<?> getOrderPaymentStatus(@RequestHeader("X-User-Id") String userId, @PathVariable Integer orderId) {
         RoomOrder order = roomOrderService.getOrderById(orderId);
         if (order == null) {
             return ResponseEntity.notFound().build();
@@ -80,7 +79,7 @@ public class RoomOrderController {
     }
 
     @GetMapping("/orders/{userId}")
-    public ResponseEntity<List<RoomOrderResponse>> getOrderByUserId(@PathVariable Integer userId) {
+    public ResponseEntity<List<RoomOrderResponse>> getOrderByUserId(@RequestHeader("X-User-Id") String userID, @PathVariable Integer userId) {
         List<RoomOrder> orders = roomOrderService.getOrdersByUserId(userId);
         List<RoomOrderResponse> roomOrderResponses = new ArrayList<>();
         for (RoomOrder order : orders) {
