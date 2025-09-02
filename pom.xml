@@ -20,9 +20,7 @@
         <module>user-service</module>
         <module>train-service</module>
         <module>hotel-service</module>
-        <module>payment-service</module>
         <module>gateway-service</module>
-        <module>fx-common</module>
     </modules>
 
     <properties>

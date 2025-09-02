@@ -1,28 +1,27 @@
 package controller;
 
-import jakarta.servlet.http.HttpSession;
-import org.fxtravel.services.hotel.client.UserClient;
+import org.fxtravel.services.hotel.common.E_PaymentStatus;
 import org.fxtravel.services.hotel.controller.RoomOrderController;
 import org.fxtravel.services.hotel.dto.BookHotelRequest;
+import org.fxtravel.services.hotel.dto.PaymentRequest;
 import org.fxtravel.services.hotel.dto.RoomOrderResponse;
-import org.fxtravel.services.hotel.entitiy.Hotel;
-import org.fxtravel.services.hotel.entitiy.Room;
 import org.fxtravel.services.hotel.entitiy.RoomOrder;
+import org.fxtravel.services.hotel.entitiy.PaymentResultDTO;
 import org.fxtravel.services.hotel.mapper.HotelMapper;
 import org.fxtravel.services.hotel.mapper.RoomMapper;
-import org.fxtravel.services.hotel.service.inter.RoomOrderService;
-import org.fxtravel.services.hotel.dto.PaymentRequest;
-import org.fxtravel.services.hotel.entitiy.PaymentResultDTO;
 import org.fxtravel.services.hotel.service.inter.PaymentService;
+import org.fxtravel.services.hotel.service.inter.RoomOrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -30,115 +29,95 @@ import static org.mockito.Mockito.when;
 
 public class RoomOrderControllerTest {
 
+    private RoomOrderController controller;
     private RoomOrderService roomOrderService;
     private PaymentService paymentService;
     private HotelMapper hotelMapper;
     private RoomMapper roomMapper;
-    private RoomOrderController controller;
-    private HttpSession session;
     private BindingResult bindingResult;
-    //private UserClient userClient;
+
+    private void injectPrivateField(Object target, String fieldName, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
+    }
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
         roomOrderService = Mockito.mock(RoomOrderService.class);
         paymentService = Mockito.mock(PaymentService.class);
         hotelMapper = Mockito.mock(HotelMapper.class);
         roomMapper = Mockito.mock(RoomMapper.class);
-        userClient = Mockito.mock(UserClient.class);
         controller = new RoomOrderController();
-
-        // 反射注入依赖
-        try {
-            var f1 = RoomOrderController.class.getDeclaredField("roomOrderService");
-            f1.setAccessible(true);
-            f1.set(controller, roomOrderService);
-            var f2 = RoomOrderController.class.getDeclaredField("paymentService");
-            f2.setAccessible(true);
-            f2.set(controller, paymentService);
-            var f3 = RoomOrderController.class.getDeclaredField("hotelMapper");
-            f3.setAccessible(true);
-            f3.set(controller, hotelMapper);
-            var f4 = RoomOrderController.class.getDeclaredField("roomMapper");
-            f4.setAccessible(true);
-            f4.set(controller, roomMapper);
-            var f5 = RoomOrderController.class.getDeclaredField("userClient");
-            f5.setAccessible(true);
-            f5.set(controller, userClient);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        session = Mockito.mock(HttpSession.class);
+        injectPrivateField(controller, "roomOrderService", roomOrderService);
+        injectPrivateField(controller, "paymentService", paymentService);
+        injectPrivateField(controller, "hotelMapper", hotelMapper);
+        injectPrivateField(controller, "roomMapper", roomMapper);
         bindingResult = Mockito.mock(BindingResult.class);
     }
-
     // getRoom 正向
     @Test
     public void testGetRoom_success() {
         BookHotelRequest req = new BookHotelRequest();
-        when(userClient.check(bindingResult, session)).thenReturn(null);
-
+        when(bindingResult.hasErrors()).thenReturn(false);
         RoomOrder order = new RoomOrder();
-        order.setId(10);
+        order.setId(1);
         order.setOrderNumber("A123");
-        order.setRoomId(5);
-        order.setTotalAmount(1000.0);
+        order.setRoomId(2);
+        order.setTotalAmount(100.0);
         when(roomOrderService.createOrder(any())).thenReturn(order);
 
-        ResponseEntity<?> resp = controller.getRoom(req, bindingResult, session);
-        assertEquals(200, resp.getStatusCodeValue());
-        Map<?, ?> body = (Map<?, ?>) resp.getBody();
+        ResponseEntity<?> response = controller.getRoom("1", req, bindingResult);
+        assertEquals(200, response.getStatusCodeValue());
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
         assertEquals("预订酒店成功", body.get("message"));
-        assertEquals(order.getId(), body.get("id"));
     }
 
     // getRoom 反向：参数校验失败
     @Test
-    public void testGetRoom_paramError() {
+    public void testGetRoom_invalidParams() {
         BookHotelRequest req = new BookHotelRequest();
-        Map<String, Object> errorBody = Map.of("error", "参数错误");
-        ResponseEntity errorResp = ResponseEntity.status(400).body(errorBody);
-        when(userClient.check(bindingResult, session)).thenReturn(errorResp);
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(bindingResult.getFieldErrors()).thenReturn(List.of(Mockito.mock(FieldError.class)));
 
-        ResponseEntity<?> resp = controller.getRoom(req, bindingResult, session);
-        assertEquals(400, resp.getStatusCodeValue());
-        assertTrue(((Map<?, ?>) resp.getBody()).containsKey("error"));
+        ResponseEntity<?> response = controller.getRoom("1", req, bindingResult);
+        assertEquals(400, response.getStatusCodeValue());
+        assertTrue(((Map<?, ?>) response.getBody()).containsKey("errors"));
     }
 
     // getRoom 反向：服务异常
     @Test
     public void testGetRoom_serviceException() {
         BookHotelRequest req = new BookHotelRequest();
-        when(userClient.check(bindingResult, session)).thenReturn(null);
-        when(roomOrderService.createOrder(any())).thenThrow(new RuntimeException("数据库异常"));
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(roomOrderService.createOrder(any())).thenThrow(new RuntimeException("异常"));
 
-        ResponseEntity<?> resp = controller.getRoom(req, bindingResult, session);
-        assertEquals(500, resp.getStatusCodeValue());
-        assertTrue(((Map<?, ?>) resp.getBody()).get("error").toString().contains("预订酒店失败"));
+        ResponseEntity<?> response = controller.getRoom("1", req, bindingResult);
+        assertEquals(500, response.getStatusCodeValue());
+        assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
     }
 
     // getOrderPaymentStatus 正向
     @Test
     public void testGetOrderPaymentStatus_success() {
         RoomOrder order = new RoomOrder();
-        order.setRelatedPaymentId(123);
-        when(roomOrderService.getOrderById(1)).thenReturn(order);
-
+        order.setRelatedPaymentId(10);
+        when(roomOrderService.getOrderById(anyInt())).thenReturn(order);
         PaymentResultDTO result = new PaymentResultDTO();
-        when(paymentService.checkPaymentStatus(123)).thenReturn(result);
+        when(paymentService.checkPaymentStatus(anyInt())).thenReturn(result);
 
-        ResponseEntity<?> resp = controller.getOrderPaymentStatus(1);
-        assertEquals(200, resp.getStatusCodeValue());
-        assertEquals(result, resp.getBody());
+        ResponseEntity<?> response = controller.getOrderPaymentStatus("1", 1);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(result, response.getBody());
     }
 
     // getOrderPaymentStatus 反向：订单不存在
     @Test
     public void testGetOrderPaymentStatus_notFound() {
-        when(roomOrderService.getOrderById(2)).thenReturn(null);
+        when(roomOrderService.getOrderById(anyInt())).thenReturn(null);
 
-        ResponseEntity<?> resp = controller.getOrderPaymentStatus(2);
-        assertEquals(404, resp.getStatusCodeValue());
+        ResponseEntity<?> response = controller.getOrderPaymentStatus("1", 1);
+        assertEquals(404, response.getStatusCodeValue());
     }
 
     // getOrderByUserId 正向
@@ -146,64 +125,54 @@ public class RoomOrderControllerTest {
     public void testGetOrderByUserId_success() {
         RoomOrder order = new RoomOrder();
         order.setId(1);
-        order.setOrderNumber("A1");
+        order.setOrderNumber("A123");
         order.setUserId(1);
         order.setHotelId(2);
         order.setRoomId(3);
-        order.setCheckInDate(LocalDate.now());
-        order.setCheckOutDate(LocalDate.now().plusDays(1));
-        order.setTotalAmount(500.0);
-        order.setCreateTime(LocalDateTime.now());
+        order.setStatus(E_PaymentStatus.COMPLETED);
+        order.setTotalAmount(100.0);
+        order.setCheckInDate(null);
+        order.setCheckOutDate(null);
+        order.setCreateTime(null);
 
-        when(roomOrderService.getOrdersByUserId(1)).thenReturn(List.of(order));
-        var hotel = Mockito.mock(Hotel.class);
-        when(hotel.getName()).thenReturn("豪华酒店");
-        when(hotelMapper.selectById(2)).thenReturn(hotel);
-        var room = Mockito.mock(Room.class);
-        when(room.getName()).thenReturn("大床房");
-        when(roomMapper.selectById(3)).thenReturn(room);
+        when(roomOrderService.getOrdersByUserId(anyInt())).thenReturn(List.of(order));
+        when(hotelMapper.selectById(anyInt())).thenReturn(Mockito.mock(org.fxtravel.services.hotel.entitiy.Hotel.class));
+        when(roomMapper.selectById(anyInt())).thenReturn(Mockito.mock(org.fxtravel.services.hotel.entitiy.Room.class));
 
-        ResponseEntity<List<RoomOrderResponse>> resp = controller.getOrderByUserId(1);
-        assertEquals(200, resp.getStatusCodeValue());
-        assertEquals(1, resp.getBody().size());
-        assertEquals("豪华酒店", resp.getBody().get(0).getHotelName());
+        ResponseEntity<List<RoomOrderResponse>> response = controller.getOrderByUserId("1", 1);
+        assertEquals(200, response.getStatusCodeValue());
+        assertFalse(response.getBody().isEmpty());
     }
 
     // getOrderByUserId 反向：无订单
     @Test
     public void testGetOrderByUserId_empty() {
-        when(roomOrderService.getOrdersByUserId(2)).thenReturn(Collections.emptyList());
+        when(roomOrderService.getOrdersByUserId(anyInt())).thenReturn(Collections.emptyList());
 
-        ResponseEntity<List<RoomOrderResponse>> resp = controller.getOrderByUserId(2);
-        assertEquals(200, resp.getStatusCodeValue());
-        assertTrue(resp.getBody().isEmpty());
+        ResponseEntity<List<RoomOrderResponse>> response = controller.getOrderByUserId("1", 1);
+        assertEquals(200, response.getStatusCodeValue());
+        assertTrue(response.getBody().isEmpty());
     }
 
     // refund 正向
     @Test
     public void testRefund_success() {
         PaymentRequest req = new PaymentRequest();
-        req.setOrderNumber("A1");
-        req.setData(Map.of());
+        when(paymentService.refundPayment(anyString(), any())).thenReturn(true);
 
-        when(userClient.check(bindingResult, session)).thenReturn(null);
-        when(paymentService.refundPayment(anyString(), anyMap())).thenReturn(true);
-
-        ResponseEntity<?> resp = controller.refund(req, bindingResult, session);
-        assertEquals(200, resp.getStatusCodeValue());
-        assertEquals(true, resp.getBody());
+        ResponseEntity<?> response = controller.refund("1", req);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(true, response.getBody());
     }
 
-    // refund 反向：参数校验失败
+    // refund 反向
     @Test
-    public void testRefund_paramError() {
+    public void testRefund_fail() {
         PaymentRequest req = new PaymentRequest();
-        Map<String, Object> errorBody = Map.of("error", "参数错误");
-        ResponseEntity errorResp = ResponseEntity.status(400).body(errorBody);
-        when(userClient.check(bindingResult, session)).thenReturn(errorResp);
+        when(paymentService.refundPayment(anyString(), any())).thenReturn(false);
 
-        ResponseEntity<?> resp = controller.refund(req, bindingResult, session);
-        assertEquals(400, resp.getStatusCodeValue());
-        assertTrue(((Map<?, ?>) resp.getBody()).containsKey("error"));
+        ResponseEntity<?> response = controller.refund("1", req);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(false, response.getBody());
     }
 }

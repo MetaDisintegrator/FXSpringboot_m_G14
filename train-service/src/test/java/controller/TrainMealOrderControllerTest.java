@@ -1,304 +1,322 @@
 package controller;
 
-import jakarta.servlet.http.HttpSession;
-import org.fxtravel.fxspringboot.common.E_PaymentStatus;
+import org.fxtravel.services.train.common.E_PaymentStatus;
 import org.fxtravel.services.train.controller.TrainMealOrderController;
-import org.fxtravel.services.train.mapper.TrainMealMapper;
-import org.fxtravel.services.train.mapper.TrainSeatOrderMapper;
-import org.fxtravel.fxspringboot.pojo.dto.payment.PaymentRequest;
-import org.fxtravel.fxspringboot.pojo.dto.payment.PaymentResultDTO;
+import org.fxtravel.services.train.dto.PaymentRequest;
 import org.fxtravel.services.train.dto.TrainMealOrderDTO;
-import org.fxtravel.services.train.entitiy.TrainSeatOrder;
-import org.fxtravel.fxspringboot.pojo.entities.User;
+import org.fxtravel.services.train.entitiy.PaymentResultDTO;
 import org.fxtravel.services.train.entitiy.TrainMeal;
 import org.fxtravel.services.train.entitiy.TrainMealOrder;
-import org.fxtravel.fxspringboot.service.inter.common.PaymentService;
+import org.fxtravel.services.train.entitiy.TrainSeatOrder;
+import org.fxtravel.services.train.mapper.TrainMealMapper;
+import org.fxtravel.services.train.mapper.TrainSeatOrderMapper;
+import org.fxtravel.services.train.service.inter.PaymentService;
 import org.fxtravel.services.train.service.inter.TrainMealOrderService;
 import org.fxtravel.services.train.service.inter.TrainMealService;
-import org.fxtravel.fxspringboot.utils.AuthUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.*;
 
-public class TrainMealOrderControllerTest {
+@ExtendWith(MockitoExtension.class)
+class TrainMealOrderControllerTest {
 
-    private TrainMealOrderController controller;
+    @Mock
     private TrainMealService trainMealService;
+
+    @Mock
     private TrainMealOrderService trainMealOrderService;
+
+    @Mock
     private TrainSeatOrderMapper trainSeatOrderMapper;
+
+    @Mock
     private PaymentService paymentService;
+
+    @Mock
     private TrainMealMapper trainMealMapper;
-    private HttpSession session;
+
+    @Mock
     private BindingResult bindingResult;
 
+    @InjectMocks
+    private TrainMealOrderController trainMealOrderController;
+
+    private TrainMealOrderDTO orderDTO;
+    private TrainMealOrder mockOrder;
+    private TrainSeatOrder mockSeatOrder;
+    private TrainMeal mockMeal;
+
     @BeforeEach
-    public void setUp() throws Exception {
-        controller = new TrainMealOrderController();
-        trainMealService = Mockito.mock(TrainMealService.class);
-        trainMealOrderService = Mockito.mock(TrainMealOrderService.class);
-        trainSeatOrderMapper = Mockito.mock(TrainSeatOrderMapper.class);
-        paymentService = Mockito.mock(PaymentService.class);
-        trainMealMapper = Mockito.mock(TrainMealMapper.class);
-        session = Mockito.mock(HttpSession.class);
-        bindingResult = Mockito.mock(BindingResult.class);
+    void setUp() {
+        orderDTO = new TrainMealOrderDTO();
+        orderDTO.setTrainMealId(1);
+        orderDTO.setTicketReservationId(100);
+        orderDTO.setQuantity(2);
 
-        var f1 = TrainMealOrderController.class.getDeclaredField("trainMealService");
-        f1.setAccessible(true); f1.set(controller, trainMealService);
-        var f2 = TrainMealOrderController.class.getDeclaredField("trainMealOrderService");
-        f2.setAccessible(true); f2.set(controller, trainMealOrderService);
-        var f3 = TrainMealOrderController.class.getDeclaredField("trainSeatOrderMapper");
-        f3.setAccessible(true); f3.set(controller, trainSeatOrderMapper);
-        var f4 = TrainMealOrderController.class.getDeclaredField("paymentService");
-        f4.setAccessible(true); f4.set(controller, paymentService);
-        var f5 = TrainMealOrderController.class.getDeclaredField("trainMealMapper");
-        f5.setAccessible(true); f5.set(controller, trainMealMapper);
-    }
+        mockOrder = new TrainMealOrder();
+        mockOrder.setId(1);
+        mockOrder.setOrderNumber("MEALORDER001");
+        mockOrder.setQuantity(2);
+        mockOrder.setTotalAmount(50.0);
+        mockOrder.setTrainMealId(1);
+        mockOrder.setSeatOrderId(100);
+        mockOrder.setStatus(E_PaymentStatus.PENDING);
 
-    // getOrdersByUser 正向
-    @Test
-    public void testGetOrdersByUser_success() {
-        User user = new User(); user.setId(1);
-        Mockito.when(session.getAttribute("user")).thenReturn(user);
+        mockSeatOrder = new TrainSeatOrder();
+        mockSeatOrder.setId(100);
+        mockSeatOrder.setStatus(E_PaymentStatus.COMPLETED);
 
-        TrainMealOrder order = new TrainMealOrder();
-        order.setId(10); order.setOrderNumber("M1"); order.setQuantity(2);
-        order.setTotalAmount(100.0);
-        order.setTrainMealId(5); order.setSeatOrderId(7);
-        order.setStatus(E_PaymentStatus.PENDING); order.setCreateTime(LocalDateTime.now());
-
-        Mockito.when(trainMealOrderService.getOrdersByUser(1)).thenReturn(List.of(order));
-        var meal = Mockito.mock(TrainMeal.class);
-        Mockito.when(meal.getName()).thenReturn("套餐A");
-        Mockito.when(trainMealMapper.selectById(5)).thenReturn(meal);
-        var seatOrder = Mockito.mock(TrainSeatOrder.class);
-        Mockito.when(seatOrder.getOrderNumber()).thenReturn("T123");
-        Mockito.when(trainSeatOrderMapper.selectById(7)).thenReturn(seatOrder);
-
-        ResponseEntity<?> resp = controller.getOrdersByUser(1, session);
-        assertEquals(200, resp.getStatusCodeValue());
-        Map<?, ?> body = (Map<?, ?>) resp.getBody();
-        assertEquals("查询成功", body.get("message"));
-        List<?> data = (List<?>) body.get("data");
-        assertEquals(1, data.size());
-    }
-
-    // getOrdersByUser 反向：未登录或ID不符
-    @Test
-    public void testGetOrdersByUser_notLoggedIn() {
-        Mockito.when(session.getAttribute("user")).thenReturn(null);
-        ResponseEntity<?> resp = controller.getOrdersByUser(1, session);
-        assertEquals(401, resp.getStatusCodeValue());
+        mockMeal = new TrainMeal();
+        mockMeal.setId(1);
+        mockMeal.setTrainId(500);
+        mockMeal.setName("Test Meal");
     }
 
     @Test
-    public void testGetOrdersByUser_idNotMatch() {
-        User user = new User(); user.setId(2);
-        Mockito.when(session.getAttribute("user")).thenReturn(user);
-        ResponseEntity<?> resp = controller.getOrdersByUser(1, session);
-        assertEquals(401, resp.getStatusCodeValue());
+    void getOrdersByUser_Success() {
+        // Arrange
+        when(trainMealOrderService.getOrdersByUser(anyInt())).thenReturn(Arrays.asList(mockOrder));
+        when(trainMealMapper.selectById(anyInt())).thenReturn(mockMeal);
+        when(trainSeatOrderMapper.selectById(anyInt())).thenReturn(mockSeatOrder);
+
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.getOrdersByUser("user123", 1);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals("查询成功", responseBody.get("message"));
+        assertNotNull(responseBody.get("data"));
+
+        verify(trainMealOrderService, times(1)).getOrdersByUser(1);
     }
 
-    // getOrdersBySeatOrder 正向
     @Test
-    public void testGetOrdersBySeatOrder_success() {
-        User user = new User();
-        Mockito.when(session.getAttribute("user")).thenReturn(user);
+    void getOrdersByUser_EmptyResult() {
+        // Arrange
+        when(trainMealOrderService.getOrdersByUser(anyInt())).thenReturn(List.of());
 
-        TrainMealOrder order = new TrainMealOrder();
-        Mockito.when(trainMealOrderService.getOrdersBySeatOrder(7)).thenReturn(List.of(order));
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.getOrdersByUser("user123", 1);
 
-        ResponseEntity<?> resp = controller.getOrdersBySeatOrder(7, session);
-        assertEquals(200, resp.getStatusCodeValue());
-        Map<?, ?> body = (Map<?, ?>) resp.getBody();
-        assertEquals("查询成功", body.get("message"));
-        assertEquals(1, ((List<?>) body.get("data")).size());
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals("查询成功", responseBody.get("message"));
+        assertTrue(((List<?>) responseBody.get("data")).isEmpty());
+
+        verify(trainMealOrderService, times(1)).getOrdersByUser(1);
     }
 
-    // getOrdersBySeatOrder 反向：未登录
     @Test
-    public void testGetOrdersBySeatOrder_notLoggedIn() {
-        Mockito.when(session.getAttribute("user")).thenReturn(null);
-        ResponseEntity<?> resp = controller.getOrdersBySeatOrder(7, session);
-        assertEquals(401, resp.getStatusCodeValue());
-        assertTrue(((Map<?, ?>) resp.getBody()).containsKey("error"));
+    void getOrdersBySeatOrder_Success() {
+        // Arrange
+        when(trainMealOrderService.getOrdersBySeatOrder(anyInt())).thenReturn(Arrays.asList(mockOrder));
+
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.getOrdersBySeatOrder("user123", 100);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals("查询成功", responseBody.get("message"));
+        assertNotNull(responseBody.get("data"));
+
+        verify(trainMealOrderService, times(1)).getOrdersBySeatOrder(100);
     }
 
-    // createOrder 正向
     @Test
-    public void testCreateOrder_success() {
-        User user = new User(); user.setId(1);
-        Mockito.when(session.getAttribute("user")).thenReturn(user);
-        Mockito.when(bindingResult.hasErrors()).thenReturn(false);
+    void createOrder_ValidationErrors() {
+        // Arrange
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(bindingResult.getFieldErrors()).thenReturn(Arrays.asList(
+                new FieldError("TrainMealOrderDTO", "trainMealId", "不能为空")
+        ));
 
-        TrainMealOrderDTO dto = new TrainMealOrderDTO();
-        dto.setTicketReservationId(8); dto.setTrainMealId(5);
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.createOrder("user123", orderDTO, bindingResult);
 
-        TrainSeatOrder seat = new TrainSeatOrder();
-        seat.setStatus(E_PaymentStatus.COMPLETED);
-        Mockito.when(trainSeatOrderMapper.selectById(8)).thenReturn(seat);
+        // Assert
+        assertEquals(400, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
 
-        TrainMeal meal = new TrainMeal();
-        meal.setTrainId(99);
-        Mockito.when(trainMealService.getMealById(5)).thenReturn(meal);
-        Mockito.when(trainSeatOrderMapper.existsByTrainAndUser(99, 1)).thenReturn(true);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertNotNull(responseBody.get("errors"));
 
-        TrainMealOrder order = new TrainMealOrder();
-        order.setId(10); order.setOrderNumber("M1");
-        order.setTrainMealId(5); order.setSeatOrderId(8);
-        Mockito.when(trainMealOrderService.createOrder(any())).thenReturn(order);
-
-        try (var mocked = Mockito.mockStatic(AuthUtil.class)) {
-            mocked.when(() -> AuthUtil.check(bindingResult, user)).thenReturn(null);
-
-            ResponseEntity<?> resp = controller.createOrder(dto, bindingResult, session);
-            assertEquals(200, resp.getStatusCodeValue());
-            Map<?, ?> body = (Map<?, ?>) resp.getBody();
-            assertEquals("列车餐预订成功", body.get("message"));
-            assertEquals(10, body.get("id"));
-        }
+        verify(trainMealOrderService, never()).createOrder(any());
     }
 
-    // createOrder 反向：参数校验失败
     @Test
-    public void testCreateOrder_paramError() {
-        User user = new User();
-        Mockito.when(session.getAttribute("user")).thenReturn(user);
-        Mockito.when(bindingResult.hasErrors()).thenReturn(true);
+    void createOrder_NoSeatOrder() {
+        // Arrange
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(trainSeatOrderMapper.selectById(anyInt())).thenReturn(null);
 
-        TrainMealOrderDTO dto = new TrainMealOrderDTO();
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.createOrder("user123", orderDTO, bindingResult);
 
-        Map<String, Object> errorBody = Map.of("error", "参数错误");
-        ResponseEntity<Map<String, Object>> errorResp = ResponseEntity.status(400).body(errorBody);
-        try (var mocked = Mockito.mockStatic(AuthUtil.class)) {
-            mocked.when(() -> AuthUtil.check(bindingResult, user)).thenReturn(errorResp);
+        // Assert
+        assertEquals(400, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
 
-            ResponseEntity<?> resp = controller.createOrder(dto, bindingResult, session);
-            assertEquals(400, resp.getStatusCodeValue());
-            assertTrue(((Map<?, ?>) resp.getBody()).containsKey("error"));
-        }
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals("未在对应列车上购票", responseBody.get("error"));
+
+        verify(trainMealOrderService, never()).createOrder(any());
     }
 
-    // createOrder 反向：未购票
     @Test
-    public void testCreateOrder_noTicket() {
-        User user = new User(); user.setId(1);
-        Mockito.when(session.getAttribute("user")).thenReturn(user);
-        Mockito.when(bindingResult.hasErrors()).thenReturn(false);
+    void createOrder_SeatOrderNotCompleted() {
+        // Arrange
+        when(bindingResult.hasErrors()).thenReturn(false);
+        mockSeatOrder.setStatus(E_PaymentStatus.PENDING);
+        when(trainSeatOrderMapper.selectById(anyInt())).thenReturn(mockSeatOrder);
 
-        TrainMealOrderDTO dto = new TrainMealOrderDTO();
-        dto.setTicketReservationId(8); dto.setTrainMealId(5);
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.createOrder("user123", orderDTO, bindingResult);
 
-        TrainSeatOrder seat = new TrainSeatOrder();
-        seat.setStatus(E_PaymentStatus.PENDING);
-        Mockito.when(trainSeatOrderMapper.selectById(8)).thenReturn(seat);
+        // Assert
+        assertEquals(400, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
 
-        try (var mocked = Mockito.mockStatic(AuthUtil.class)) {
-            mocked.when(() -> AuthUtil.check(bindingResult, user)).thenReturn(null);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals("未在对应列车上购票", responseBody.get("error"));
 
-            ResponseEntity<?> resp = controller.createOrder(dto, bindingResult, session);
-            assertEquals(400, resp.getStatusCodeValue());
-            assertTrue(((Map<?, ?>) resp.getBody()).containsKey("error"));
-        }
+        verify(trainMealOrderService, never()).createOrder(any());
     }
 
-    // createOrder 反向：未在对应列车购票
     @Test
-    public void testCreateOrder_noTrainTicket() {
-        User user = new User(); user.setId(1);
-        Mockito.when(session.getAttribute("user")).thenReturn(user);
-        Mockito.when(bindingResult.hasErrors()).thenReturn(false);
+    void createOrder_NoTrainTicket() {
+        // Arrange
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(trainSeatOrderMapper.selectById(anyInt())).thenReturn(mockSeatOrder);
+        when(trainMealService.getMealById(anyInt())).thenReturn(mockMeal);
+        when(trainSeatOrderMapper.existsByTrainAndUser(anyInt(), anyInt())).thenReturn(false);
 
-        TrainMealOrderDTO dto = new TrainMealOrderDTO();
-        dto.setTicketReservationId(8); dto.setTrainMealId(5);
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.createOrder("user123", orderDTO, bindingResult);
 
-        TrainSeatOrder seat = new TrainSeatOrder();
-        seat.setStatus(E_PaymentStatus.COMPLETED);
-        Mockito.when(trainSeatOrderMapper.selectById(8)).thenReturn(seat);
+        // Assert
+        assertEquals(400, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
 
-        TrainMeal meal = new TrainMeal();
-        meal.setTrainId(99);
-        Mockito.when(trainMealService.getMealById(5)).thenReturn(meal);
-        Mockito.when(trainSeatOrderMapper.existsByTrainAndUser(99, 1)).thenReturn(false);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals("未在对应列车上购票", responseBody.get("error"));
 
-        try (var mocked = Mockito.mockStatic(AuthUtil.class)) {
-            mocked.when(() -> AuthUtil.check(bindingResult, user)).thenReturn(null);
-
-            ResponseEntity<?> resp = controller.createOrder(dto, bindingResult, session);
-            assertEquals(400, resp.getStatusCodeValue());
-            assertTrue(((Map<?, ?>) resp.getBody()).containsKey("error"));
-        }
+        verify(trainMealOrderService, never()).createOrder(any());
     }
 
-    // getOrderPaymentStatus 正向
     @Test
-    public void testGetOrderPaymentStatus_success() {
-        TrainMealOrder order = new TrainMealOrder();
-        order.setRelatedPaymentId(123);
-        Mockito.when(trainMealOrderService.getOrderById(1)).thenReturn(order);
+    void createOrder_Success() {
+        // Arrange
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(trainSeatOrderMapper.selectById(anyInt())).thenReturn(mockSeatOrder);
+        when(trainMealService.getMealById(anyInt())).thenReturn(mockMeal);
+        when(trainSeatOrderMapper.existsByTrainAndUser(anyInt(), anyInt())).thenReturn(true);
+        when(trainMealOrderService.createOrder(any())).thenReturn(mockOrder);
 
-        PaymentResultDTO result = new PaymentResultDTO();
-        Mockito.when(paymentService.checkPaymentStatus(123)).thenReturn(result);
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.createOrder("123", orderDTO, bindingResult);
 
-        ResponseEntity<?> resp = controller.getOrderPaymentStatus(1);
-        assertEquals(200, resp.getStatusCodeValue());
-        assertEquals(result, resp.getBody());
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertEquals("列车餐预订成功", responseBody.get("message"));
+        assertEquals(1, responseBody.get("id"));
+        assertEquals("MEALORDER001", responseBody.get("number"));
+
+        verify(trainMealOrderService, times(1)).createOrder(orderDTO);
     }
 
-    // getOrderPaymentStatus 反向：订单不存在
     @Test
-    public void testGetOrderPaymentStatus_notFound() {
-        Mockito.when(trainMealOrderService.getOrderById(2)).thenReturn(null);
-        ResponseEntity<?> resp = controller.getOrderPaymentStatus(2);
-        assertEquals(404, resp.getStatusCodeValue());
+    void getOrderPaymentStatus_OrderNotFound() {
+        // Arrange
+        when(trainMealOrderService.getOrderById(anyInt())).thenReturn(null);
+
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.getOrderPaymentStatus("user123", 1);
+
+        // Assert
+        assertEquals(404, response.getStatusCodeValue());
+        verify(trainMealOrderService, times(1)).getOrderById(1);
     }
 
-    // refund 正向
     @Test
-    public void testRefund_success() {
-        User user = new User();
-        Mockito.when(session.getAttribute("user")).thenReturn(user);
-        Mockito.when(bindingResult.hasErrors()).thenReturn(false);
+    void getOrderPaymentStatus_NoPayment() {
+        // Arrange
+        mockOrder.setRelatedPaymentId(null);
+        when(trainMealOrderService.getOrderById(anyInt())).thenReturn(mockOrder);
 
-        PaymentRequest req = new PaymentRequest();
-        req.setOrderNumber("M1");
-        req.setData(Map.of());
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.getOrderPaymentStatus("user123", 1);
 
-        Mockito.when(paymentService.refundPayment(anyString(), anyMap())).thenReturn(true);
-
-        try (var mocked = Mockito.mockStatic(AuthUtil.class)) {
-            mocked.when(() -> AuthUtil.check(bindingResult, user)).thenReturn(null);
-
-            ResponseEntity<?> resp = controller.refund(req, bindingResult, session);
-            assertEquals(200, resp.getStatusCodeValue());
-            assertEquals(true, resp.getBody());
-        }
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        assertNull(response.getBody());
+        verify(trainMealOrderService, times(1)).getOrderById(1);
     }
 
-    // refund 反向：参数校验失败
     @Test
-    public void testRefund_paramError() {
-        User user = new User();
-        Mockito.when(session.getAttribute("user")).thenReturn(user);
-        Mockito.when(bindingResult.hasErrors()).thenReturn(true);
+    void refund_ValidationErrors() {
+        // Arrange
+        PaymentRequest request = new PaymentRequest();
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(bindingResult.getFieldErrors()).thenReturn(Arrays.asList(
+                new FieldError("PaymentRequest", "orderNumber", "不能为空")
+        ));
 
-        PaymentRequest req = new PaymentRequest();
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.refund("user123", request, bindingResult);
 
-        Map<String, Object> errorBody = Map.of("error", "参数错误");
-        ResponseEntity<Map<String, Object>> errorResp = ResponseEntity.status(400).body(errorBody);
-        try (var mocked = Mockito.mockStatic(AuthUtil.class)) {
-            mocked.when(() -> AuthUtil.check(bindingResult, user)).thenReturn(errorResp);
+        // Assert
+        assertEquals(400, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
 
-            ResponseEntity<?> resp = controller.refund(req, bindingResult, session);
-            assertEquals(400, resp.getStatusCodeValue());
-            assertTrue(((Map<?, ?>) resp.getBody()).containsKey("error"));
-        }
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertNotNull(responseBody.get("errors"));
+
+        verify(paymentService, never()).refundPayment(anyString(), anyString());
+    }
+
+    @Test
+    void refund_Success() {
+        // Arrange
+        PaymentRequest request = new PaymentRequest();
+        request.setOrderNumber("ORDER123");
+        request.setData("refund-data");
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(paymentService.refundPayment(anyString(), anyString())).thenReturn(true);
+
+        // Act
+        ResponseEntity<?> response = trainMealOrderController.refund("user123", request, bindingResult);
+
+        // Assert
+        assertEquals(200, response.getStatusCodeValue());
+        assertTrue((Boolean) response.getBody());
+        verify(paymentService, times(1)).refundPayment("ORDER123", "refund-data");
     }
 }

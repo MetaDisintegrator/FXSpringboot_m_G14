@@ -1,7 +1,6 @@
 package service;
 
-import org.fxtravel.fxspringboot.event.EventCenter;
-import org.fxtravel.fxspringboot.event.data.PaymentInfo;
+import org.fxtravel.services.train.event.EventCenter;
 import org.fxtravel.services.train.mapper.TrainMealMapper;
 import org.fxtravel.services.train.entitiy.TrainMeal;
 import org.fxtravel.services.train.service.impl.TrainMealServiceImpl;

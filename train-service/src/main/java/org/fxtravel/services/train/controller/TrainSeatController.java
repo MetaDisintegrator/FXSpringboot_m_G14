@@ -1,8 +1,6 @@
 package org.fxtravel.services.train.controller;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.fxtravel.services.train.client.UserClient;
 import org.fxtravel.services.train.dto.SearchTrainRequest;
 import org.fxtravel.services.train.dto.TrainSearchResult;
 import org.fxtravel.services.train.entitiy.Train;
@@ -22,7 +20,6 @@ public class TrainSeatController {
     @Autowired
     TrainSeatService trainSeatService;
 
-    UserClient userClient;
 
     @GetMapping("/by-id/{id}")
     public Train getTrain(@RequestHeader("X-User-Id") String userId, @PathVariable Integer id) {

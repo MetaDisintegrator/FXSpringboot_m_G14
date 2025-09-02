@@ -1,8 +1,8 @@
 package service;
 
-import org.fxtravel.fxspringboot.common.E_PaymentStatus;
-import org.fxtravel.fxspringboot.event.EventCenter;
-import org.fxtravel.fxspringboot.event.data.PaymentInfo;
+import org.fxtravel.services.train.common.E_PaymentStatus;
+import org.fxtravel.services.train.event.EventCenter;
+import org.fxtravel.services.train.event.data.PaymentInfo;
 import org.fxtravel.services.train.mapper.TrainMapper;
 import org.fxtravel.services.train.mapper.TrainSeatMapper;
 import org.fxtravel.services.train.dto.TrainSearchResult;

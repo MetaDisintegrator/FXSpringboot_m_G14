@@ -1,7 +1,5 @@
 package controller;
 
-import jakarta.servlet.http.HttpSession;
-
 import org.fxtravel.services.hotel.controller.HotelController;
 import org.fxtravel.services.hotel.dto.HotelSearchResult;
 import org.fxtravel.services.hotel.dto.SearchHotelRequest;
@@ -24,47 +22,56 @@ public class HotelControllerTest {
 
     private HotelController hotelController;
     private HotelService hotelService;
-    private HttpSession session;
     private BindingResult bindingResult;
 
     @BeforeEach
     public void setUp() {
         hotelService = Mockito.mock(HotelService.class);
         hotelController = new HotelController(hotelService);
-        session = Mockito.mock(HttpSession.class);
         bindingResult = Mockito.mock(BindingResult.class);
     }
 
-    // 正向：参数正确且已登录
+    // 正向测试
     @Test
     public void testSearchHotel_success() {
         SearchHotelRequest req = new SearchHotelRequest();
         req.setDestination("北京");
         req.setNamePattern("豪华");
 
-        // 模拟无错误和已登录
         when(bindingResult.hasErrors()).thenReturn(false);
-        when(session.getAttribute("user")).thenReturn(new Object());
-
         List<HotelSearchResult> results = Collections.singletonList(new HotelSearchResult());
         when(hotelService.searchHotels(anyString(), anyString())).thenReturn(results);
 
-        ResponseEntity<?> response = hotelController.searchHotel(req, bindingResult, session);
+        ResponseEntity<?> response = hotelController.searchHotel("1", req, bindingResult);
         assertEquals(200, response.getStatusCodeValue());
         Map<?, ?> body = (Map<?, ?>) response.getBody();
         assertEquals("查询成功", body.get("message"));
         assertEquals(results, body.get("data"));
     }
 
-    // 反向：未登录
+    // 反向测试：参数校验失败
     @Test
-    public void testSearchHotel_notLoggedIn() {
+    public void testSearchHotel_invalidParams() {
         SearchHotelRequest req = new SearchHotelRequest();
-        when(bindingResult.hasErrors()).thenReturn(false);
-        when(session.getAttribute("user")).thenReturn(null);
+        when(bindingResult.hasErrors()).thenReturn(true);
 
-        ResponseEntity<?> response = hotelController.searchHotel(req, bindingResult, session);
-        assertEquals(401, response.getStatusCodeValue());
+        ResponseEntity<?> response = hotelController.searchHotel("1", req, bindingResult);
+        assertEquals(400, response.getStatusCodeValue());
+        assertTrue(((Map<?, ?>) response.getBody()).containsKey("errors"));
+    }
+
+    // 反向测试：服务异常
+    @Test
+    public void testSearchHotel_serviceException() {
+        SearchHotelRequest req = new SearchHotelRequest();
+        req.setDestination("北京");
+        req.setNamePattern("豪华");
+
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(hotelService.searchHotels(anyString(), anyString())).thenThrow(new RuntimeException("数据库异常"));
+
+        ResponseEntity<?> response = hotelController.searchHotel("1", req, bindingResult);
+        assertEquals(500, response.getStatusCodeValue());
         assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
     }
 }
