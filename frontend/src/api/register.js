@@ -9,6 +9,10 @@ const request = axios.create({
     withCredentials: true // 必须开启，以支持 HttpSession 登录态
 })
 
+const getAuthHeader = () => ({
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`
+});
+
 // -------------------- 🔐 AuthController 接口 --------------------
 
 /**
@@ -189,11 +193,7 @@ export const resetByOldPassword = (data) => {
  * 说明：已将原来的 GET 请求改为 POST，无需请求体，后端对应接口应作相应调整。
  */
 export function getCurrentUser(token) {
-    return axios.get('/api/user/userdata', {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })
+    return axios.get('/api/user/userdata', { headers: getAuthHeader() })
 }
 
 /**

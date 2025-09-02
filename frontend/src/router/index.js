@@ -14,6 +14,7 @@ import BookingSuccess from '../pages/BookingSuccess.vue'
 import AboutUs from "../pages/AboutUs.vue"
 import MessageCenter from "../pages/MessageCenter.vue"
 import CustomerService from '../pages/CustomerService.vue' // 或者 .vue，看你实际用哪种
+import HotelBooking from '../pages/HotelBooking.vue'
 
 const routes = [
     // 首页不需要登录
@@ -36,6 +37,12 @@ const routes = [
         name: 'TrainBooking',
         component: TrainBooking,
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/hotel/payment',
+        name: 'HotelBooking',  // 注意和 router.push 中的 name 一致
+        component: HotelBooking,
+        props: route => ({ ...route.query })  // 将 query 参数传给组件
     },
     {
         path: '/orders',

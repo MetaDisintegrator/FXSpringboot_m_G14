@@ -13,7 +13,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '^/api': {  // 匹配所有以 /api 开头的请求
-        target: 'http://localhost:8080',  // 后端地址
+        target: 'http://localhost:8060',  // 后端地址
         changeOrigin: true,
         rewrite: (path) => path // 不需要重写路径（前后端路径一致）
       }

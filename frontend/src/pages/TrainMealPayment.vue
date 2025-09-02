@@ -53,7 +53,7 @@
 import {ref, onMounted, onUnmounted, watch} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {doAsync} from "../api/trainMeal.js";
-import {complete, fail} from "../api/pay.js";
+import {trainComplete, trainFail} from "../api/pay.js";
 import {ElMessage} from "element-plus";
 
 const route = useRoute()
@@ -133,7 +133,7 @@ async function checkOrderStatus() {
 async function handlePayment() {
   payLoading.value = true
   try {
-    const payRes = await complete({ orderNumber: orderNumber.value })
+    const payRes = await trainComplete({ orderNumber: orderNumber.value })
     console.log(payRes)
     if (payRes.value) {
       pollingMessage.value = '支付请求已提交，请稍候...'
@@ -149,7 +149,7 @@ async function handlePayment() {
 async function handleCancel() {
   cancelLoading.value = true
   try {
-    await fail({ orderNumber: orderNumber.value })
+    await trainFail({ orderNumber: orderNumber.value })
   } catch (error) {
     ElMessage.error(error.response?.data?.message || '取消失败')
   } finally {

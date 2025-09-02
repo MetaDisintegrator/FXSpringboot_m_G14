@@ -7,8 +7,24 @@ const request = axios.create({
     withCredentials: true
 })
 
-export const complete = (params) => request.post('/payment/complete', params)
+const getAuthHeader = () => ({
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`
+});
 
-export const fail = (params) => request.post('/payment/fail', params)
+export const hotelComplete = (params) =>
+    request.post('/hotel/payment/complete', params, { headers: getAuthHeader() });
 
-export const finish = (params) => request.post('/payment/finish', params)
+export const hotelFail = (params) =>
+    request.post('/hotel/payment/fail', params, { headers: getAuthHeader() });
+
+export const hotelFinish = (params) =>
+    request.post('/hotel/payment/finish', params, { headers: getAuthHeader() });
+
+export const trainComplete = (params) =>
+    request.post('/train/payment/complete', params, { headers: getAuthHeader() });
+
+export const trainFail = (params) =>
+    request.post('/train/payment/fail', params, { headers: getAuthHeader() });
+
+export const trainFinish = (params) =>
+    request.post('/train/payment/finish', params, { headers: getAuthHeader() });

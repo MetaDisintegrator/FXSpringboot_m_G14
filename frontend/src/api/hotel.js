@@ -9,15 +9,24 @@ const request = axios.create({
     withCredentials: true
 })
 
-export const getOrderRooms = (userId) => request.get(`/hotel/orders/${userId}`)
+const getAuthHeader = () => ({
+    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`
+});
 
-export const searchHotels = (params) => request.post('/hotel/room/by-dest', params)
+export const getOrderRooms = (userId) =>
+    request.get(`/hotel/orders/${userId}`, { headers: getAuthHeader() });
 
-export const bookRoom = (params) => request.post('/hotel/room/get', params)
+export const searchHotels = (params) =>
+    request.post('/hotel/room/by-dest', params, { headers: getAuthHeader() });
 
-export const doAsync = (orderId) => request.get(`/hotel/${orderId}`)
+export const bookRoom = (params) =>
+    request.post('/hotel/room/get', params, { headers: getAuthHeader() });
 
-export const refundRoom = (params) => request.post('/hotel/refund', params )
+export const doAsync = (orderId) =>
+    request.get(`/hotel/${orderId}`, { headers: getAuthHeader() });
+
+export const refundRoom = (params) =>
+    request.post('/hotel/refund', params, { headers: getAuthHeader() });
 
 // 过时
 export function advancedSearch(filters) {

@@ -54,7 +54,7 @@
 import {ref, onMounted, onUnmounted, watch} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { complete, fail } from '../api/pay'
+import { hotelComplete, hotelFail } from '../api/pay'
 import { doAsync } from '../api/hotel.js'
 
 const route = useRoute()
@@ -145,7 +145,7 @@ async function checkOrderStatus() {
 async function handlePayment() {
   payLoading.value = true
   try {
-    const payRes = await complete({ orderNumber: orderNumber.value })
+    const payRes = await hotelComplete({orderNumber: orderNumber.value});
     console.log(payRes)
     if (payRes.value) {
       pollingMessage.value = '支付请求已提交，请稍候...'
@@ -161,7 +161,7 @@ async function handlePayment() {
 async function handleCancel() {
   cancelLoading.value = true
   try {
-    await fail({ orderNumber: orderNumber.value })
+    await hotelFail({ orderNumber: orderNumber.value })
   } catch (error) {
     ElMessage.error(error.response?.data?.message || '取消失败')
   } finally {

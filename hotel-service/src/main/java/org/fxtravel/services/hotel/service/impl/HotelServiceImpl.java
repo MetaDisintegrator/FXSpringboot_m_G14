@@ -66,6 +66,7 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public List<HotelSearchResult> searchHotels(String destination, String pattern) {
         if (pattern == null || pattern.isEmpty()) {
+            System.out.println("Searching hotels in destination: " + destination + " with no name pattern.");
             return getResults(hotelMapper.findByDest(destination));
         }
 
@@ -74,12 +75,12 @@ public class HotelServiceImpl implements HotelService {
 
     private List<HotelSearchResult> getResults(List<Hotel> hotels) {
         if (hotels.isEmpty()) {
+            System.out.println("No hotels found for the given criteria.");
             return null;
         }
 
         // 转换为搜索结果
         List<HotelSearchResult> results = new ArrayList<>();
-
         for (Hotel hotel : hotels) {
             List<Room> roomList = roomMapper.findByHotel(hotel.getId());
             if (roomList.isEmpty()) {
@@ -91,7 +92,7 @@ public class HotelServiceImpl implements HotelService {
             result.setRooms(roomList);
             results.add(result);
         }
-
+        System.out.println("Found " + results.size() + " hotels matching the criteria." + hotels);
         return results;
     }
 
