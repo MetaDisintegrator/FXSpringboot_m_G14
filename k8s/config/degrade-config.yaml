@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fxtravel-degrade-config
+  namespace: fxtravel
+data:
+  GATEWAY_MODE: "enabled"   # enabled | readonly | disabled
+  USER_MODE:    "enabled"
+  TRAIN_MODE:   "enabled"
+  HOTEL_MODE:   "enabled"
+
+  DISABLE_RECOMMEND: "false"  # true 关闭推荐等非核心功能
