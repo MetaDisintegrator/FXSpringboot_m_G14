@@ -1,11 +1,12 @@
 #!/bin/bash
+# deploy.sh
 
 # 定义变量
 FRONTEND_DIR="frontend"
 IMAGE_TAG=$(date +%Y%m%d%H%M%S)
 MAIN_NODE="root@192.168.184.131"        # 主节点使用主机名
 WORKER_NODES=("worker1" "worker2")
-YAML_PATH="~/fx/yml/backend.yml"
+SVC_NAMES=("config-service" "discovery-service" "gateway-service" "user-service" "hotel-service" "train-service")
 
 # 函数：错误处理
 handle_error() {
@@ -16,74 +17,32 @@ handle_error() {
 
 trap 'handle_error $LINENO' ERR
 
-# 1. 构建Java后端
-echo "========== 构建Java后端 =========="
-mvn clean package
-docker build -t fx-backend:"$IMAGE_TAG" .
+#./deploy-micro.sh "discovery-service" "discovery-service" "123" "root@192.168.184.131" "worker1" "worker2" || read -p "1" -n 1
 
-# 2. 保存镜像并清理本地
-echo "========== 保存镜像并清理本地 =========="
-docker save -o ./app.tar fx-backend:"$IMAGE_TAG"
-docker rmi fx-backend:"$IMAGE_TAG"
+# 1. 构建各个微服务
+echo "========== 构建微服务 =========="
+for SVC_NAME in "${SVC_NAMES[@]}"; do
+    echo -e "\n▶▶▶ 正在部署服务: $SVC_NAME"
+    echo "--------------------------------------------------"
 
-# 3. 分发镜像到所有节点（通过主节点中转）
-echo "========== 分发镜像到所有节点 =========="
-scp ./app.tar $MAIN_NODE:~/fx/
+    # 调用 deploy-micro.sh 并实时显示输出
+    ./deploy-micro.sh \
+        "$SVC_NAME" \
+        "$SVC_NAME" \
+        "$IMAGE_TAG" \
+        "$MAIN_NODE" \
+        "${WORKER_NODES[@]}"
 
-# 将WORKER_NODES数组转换为空格分隔的字符串
-worker_nodes_str="${WORKER_NODES[*]}"
-
-ssh $MAIN_NODE << EOF
-    # 将字符串转换回数组
-    nodes=($worker_nodes_str)
-    # 在主节点上分发镜像
-    for node in "\${nodes[@]}"; do
-        echo "正在处理节点: \$node"
-        # 确保目标目录存在
-        ssh \$node "mkdir -p ~/fx/"
-        scp ~/fx/app.tar \$node:~/fx/
-    done
-EOF
-
-# 4. 加载镜像到所有节点
-echo "========== 加载镜像到所有节点 =========="
-ssh $MAIN_NODE << EOF
-    nodes=($worker_nodes_str)
-    for node in "\${nodes[@]}"; do
-        echo "正在加载到节点: \$node"
-        ssh \$node "docker load -i ~/fx/app.tar"
-    done
-EOF
-
-# 5. 更新K8s部署
-echo "========== 更新K8s部署 =========="
-ssh $MAIN_NODE << EOF
-    kubectl delete -f $YAML_PATH
-    sed -i 's|image: fx-backend:.*|image: fx-backend:$IMAGE_TAG|g' $YAML_PATH
-    kubectl apply -f $YAML_PATH
-EOF
-
-# 6. 清理所有节点的旧镜像
-echo "========== 清理所有节点的旧镜像 =========="
-ssh $MAIN_NODE << EOF
-    nodes=($worker_nodes_str)
-    for node in "\${nodes[@]}"; do
-        echo "正在清理节点: \$node"
-        ssh \$node << 'INNER_EOF'
-            # 删除所有相关容器
-            docker rm -f \$(docker ps -aq -f "ancestor=fx-backend") 2>/dev/null || true
-
-            # 保留最新3个镜像
-            docker images fx-backend --format "{{.ID}}" | tail -n +4 | xargs -r docker rmi -f
-
-            # 清理悬空镜像
-            docker image prune -f
-INNER_EOF
-    done
-EOF
+    # 检查上一条命令是否成功
+    if [ $? -ne 0 ]; then
+        echo -e "\n❌ 服务 $SVC_NAME 部署失败！"
+        read -p "按任意键退出..." -n 1
+        exit 1
+    fi
+done
 
 echo "========== 部署完成 =========="
 echo "新镜像标签: $IMAGE_TAG"
-echo "YAML文件已更新: $YAML_PATH"
+echo "所有服务已更新至 Kubernetes 集群"
 
 read -p "按任意键退出..." -n 1
