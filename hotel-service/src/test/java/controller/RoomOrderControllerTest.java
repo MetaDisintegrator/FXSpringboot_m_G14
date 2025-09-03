@@ -154,25 +154,32 @@ public class RoomOrderControllerTest {
         assertTrue(response.getBody().isEmpty());
     }
 
-    // refund 正向
     @Test
-    public void testRefund_success() {
-        PaymentRequest req = new PaymentRequest();
-        when(paymentService.refundPayment(anyString(), any())).thenReturn(true);
+    void refundPayment_success() {
+        PaymentRequest request = new PaymentRequest();
+        request.setOrderNumber("R123");
+        request.setData("refundData");
 
-        ResponseEntity<?> response = controller.refund("1", req);
+        Mockito.when(paymentService.refundPayment("R123", "refundData")).thenReturn(true);
+
+        ResponseEntity<?> response = controller.refund("user9", request);
+
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(true, response.getBody());
+        assertTrue((Boolean) response.getBody());
     }
 
-    // refund 反向
     @Test
-    public void testRefund_fail() {
-        PaymentRequest req = new PaymentRequest();
-        when(paymentService.refundPayment(anyString(), any())).thenReturn(false);
+    void refundPayment_fail() {
+        PaymentRequest request = new PaymentRequest();
+        request.setOrderNumber("R456");
+        request.setData("refundFail");
 
-        ResponseEntity<?> response = controller.refund("1", req);
+        Mockito.when(paymentService.refundPayment("R456", "refundFail")).thenReturn(false);
+
+        ResponseEntity<?> response = controller.refund("user10", request);
+
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(false, response.getBody());
+        assertFalse((Boolean) response.getBody());
     }
+
 }

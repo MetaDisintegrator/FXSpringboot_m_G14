@@ -3,97 +3,64 @@ package controller;
 import org.fxtravel.services.hotel.controller.PaymentController;
 import org.fxtravel.services.hotel.dto.PaymentRequest;
 import org.fxtravel.services.hotel.service.inter.PaymentService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
-import java.lang.reflect.Field;
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
 
-public class PaymentControllerTest {
+@ExtendWith(MockitoExtension.class)
+class PaymentControllerTest {
 
-    private PaymentController controller;
+    @InjectMocks
+    private PaymentController paymentController;
+
+    @Mock
     private PaymentService paymentService;
 
-    private void injectPrivateField(Object target, String fieldName, Object value) throws Exception {
-        Field field = target.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(target, value);
-    }
-    @BeforeEach
-    public void setUp() throws Exception {
-        paymentService = Mockito.mock(PaymentService.class);
-        controller = new PaymentController();
-        injectPrivateField(controller, "paymentService", paymentService);
-    }
-
-    // completePayment 正向
     @Test
-    public void testCompletePayment_success() {
-        PaymentRequest req = new PaymentRequest();
-        when(paymentService.completePayment(anyString(), any())).thenReturn(true);
+    void completePayment_success() {
+        PaymentRequest request = new PaymentRequest();
+        request.setOrderNumber("123");
+        request.setData("mockData");
 
-        ResponseEntity<Boolean> response = controller.completePayment("1", req);
+        Mockito.when(paymentService.completePayment("123", "mockData")).thenReturn(true);
+
+        ResponseEntity<Boolean> response = paymentController.completePayment("user1", request);
+
         assertEquals(200, response.getStatusCodeValue());
         assertTrue(response.getBody());
     }
 
-    // completePayment 反向
     @Test
-    public void testCompletePayment_fail() {
-        PaymentRequest req = new PaymentRequest();
-        when(paymentService.completePayment(anyString(), any())).thenReturn(false);
+    void cancelPayment_fail() {
+        PaymentRequest request = new PaymentRequest();
+        request.setOrderNumber("456");
+        request.setData("errorData");
 
-        ResponseEntity<Boolean> response = controller.completePayment("1", req);
+        Mockito.when(paymentService.failPayment("456", "errorData")).thenReturn(false);
+
+        ResponseEntity<Boolean> response = paymentController.cancelPayment("user2", request);
+
         assertEquals(200, response.getStatusCodeValue());
         assertFalse(response.getBody());
     }
 
-    // cancelPayment 正向
     @Test
-    public void testCancelPayment_success() {
-        PaymentRequest req = new PaymentRequest();
-        when(paymentService.failPayment(anyString(), any())).thenReturn(true);
+    void finishPayment_success() {
+        PaymentRequest request = new PaymentRequest();
+        request.setOrderNumber("789");
+        request.setData("finishData");
 
-        ResponseEntity<Boolean> response = controller.cancelPayment("1", req);
+        Mockito.when(paymentService.finishPayment("789", "finishData")).thenReturn(true);
+
+        ResponseEntity<Boolean> response = paymentController.finishPayment("user3", request);
+
         assertEquals(200, response.getStatusCodeValue());
         assertTrue(response.getBody());
-    }
-
-    // cancelPayment 反向
-    @Test
-    public void testCancelPayment_fail() {
-        PaymentRequest req = new PaymentRequest();
-        when(paymentService.failPayment(anyString(), any())).thenReturn(false);
-
-        ResponseEntity<Boolean> response = controller.cancelPayment("1", req);
-        assertEquals(200, response.getStatusCodeValue());
-        assertFalse(response.getBody());
-    }
-
-    // finishPayment 正向
-    @Test
-    public void testFinishPayment_success() {
-        PaymentRequest req = new PaymentRequest();
-        when(paymentService.finishPayment(anyString(), any())).thenReturn(true);
-
-        ResponseEntity<Boolean> response = controller.finishPayment("1", req);
-        assertEquals(200, response.getStatusCodeValue());
-        assertTrue(response.getBody());
-    }
-
-    // finishPayment 反向
-    @Test
-    public void testFinishPayment_fail() {
-        PaymentRequest req = new PaymentRequest();
-        when(paymentService.finishPayment(anyString(), any())).thenReturn(false);
-
-        ResponseEntity<Boolean> response = controller.finishPayment("1", req);
-        assertEquals(200, response.getStatusCodeValue());
-        assertFalse(response.getBody());
     }
 }

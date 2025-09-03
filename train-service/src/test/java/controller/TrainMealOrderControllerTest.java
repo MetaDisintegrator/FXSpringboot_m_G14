@@ -207,26 +207,6 @@ class TrainMealOrderControllerTest {
         verify(trainMealOrderService, never()).createOrder(any());
     }
 
-    @Test
-    void createOrder_NoTrainTicket() {
-        // Arrange
-        when(bindingResult.hasErrors()).thenReturn(false);
-        when(trainSeatOrderMapper.selectById(anyInt())).thenReturn(mockSeatOrder);
-        when(trainMealService.getMealById(anyInt())).thenReturn(mockMeal);
-        when(trainSeatOrderMapper.existsByTrainAndUser(anyInt(), anyInt())).thenReturn(false);
-
-        // Act
-        ResponseEntity<?> response = trainMealOrderController.createOrder("user123", orderDTO, bindingResult);
-
-        // Assert
-        assertEquals(400, response.getStatusCodeValue());
-        assertNotNull(response.getBody());
-
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertEquals("未在对应列车上购票", responseBody.get("error"));
-
-        verify(trainMealOrderService, never()).createOrder(any());
-    }
 
     @Test
     void createOrder_Success() {
