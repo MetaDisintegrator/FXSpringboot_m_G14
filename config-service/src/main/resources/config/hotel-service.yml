@@ -27,15 +27,15 @@ spring:
     url: jdbc:mysql://localhost:3306/fx_hotel_service?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf-8&autoReconnect=true
     username: 'root'
     # password: 'ss72ss05yy06'
-    password: 'yyyYYY&0121'
-    #    password: 'ehern030121'
-#    password: '050322yhq'
+    #password: 'yyyYYY&0121'
+    password: 'ehern030121'
+    #password: '050322yhq'
     hikari:
       username: 'root'
       # password: 'ss72ss05yy06'
-      password: 'yyyYYY&0121'
-      #      password: 'ehern030121'
-#      password: '050322yhq'
+      #password: 'yyyYYY&0121'
+      password: 'ehern030121'
+      # password: '050322yhq'
       driver-class-name: com.mysql.cj.jdbc.Driver
       maximum-pool-size: 3000
       minimum-idle: 10

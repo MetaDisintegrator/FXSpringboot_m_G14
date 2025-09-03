@@ -4,7 +4,7 @@ metadata:
   name: hotel-service
   namespace: fxtravel
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: hotel-service
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: hotel
-          image: <YOUR_HOTEL_IMAGE:TAG>   # TODO 改成真实镜像
+          image: hotel-service:latest   # TODO 改成真实镜像
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -39,6 +39,17 @@ spec:
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 20
+          env:
+            - name: SERVICE_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: degrade-config
+                  key: HOTEL_MODE
+            - name: DISABLE_RECOMMEND
+              valueFrom:
+                configMapKeyRef:
+                  name: degrade-config
+                  key: DISABLE_RECOMMEND
 ---
 apiVersion: v1
 kind: Service

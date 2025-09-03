@@ -4,7 +4,7 @@ metadata:
   name: gateway-service
   namespace: fxtravel
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: gateway-service
@@ -42,19 +42,19 @@ spec:
           env:
             - name: GATEWAY_MODE
               valueFrom:
-                configMapKeyRef: { name: fxtravel-degrade-config, key: GATEWAY_MODE }
+                configMapKeyRef: { name: degrade-config, key: GATEWAY_MODE }
             - name: USER_MODE
               valueFrom:
-                configMapKeyRef: { name: fxtravel-degrade-config, key: USER_MODE }
+                configMapKeyRef: { name: degrade-config, key: USER_MODE }
             - name: TRAIN_MODE
               valueFrom:
-                configMapKeyRef: { name: fxtravel-degrade-config, key: TRAIN_MODE }
+                configMapKeyRef: { name: degrade-config, key: TRAIN_MODE }
             - name: HOTEL_MODE
               valueFrom:
-                configMapKeyRef: { name: fxtravel-degrade-config, key: HOTEL_MODE }
+                configMapKeyRef: { name: degrade-config, key: HOTEL_MODE }
             - name: DISABLE_RECOMMEND
               valueFrom:
-                configMapKeyRef: { name: fxtravel-degrade-config, key: DISABLE_RECOMMEND }
+                configMapKeyRef: { name: degrade-config, key: DISABLE_RECOMMEND }
 ---
 apiVersion: v1
 kind: Service

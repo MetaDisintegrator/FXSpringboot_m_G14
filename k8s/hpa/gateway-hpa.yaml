@@ -1,7 +1,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: gateway-service-hpa
+  name: gateway-hpa
   namespace: fxtravel
 spec:
   scaleTargetRef:
@@ -9,11 +9,24 @@ spec:
     kind: Deployment
     name: gateway-service
   minReplicas: 1
-  maxReplicas: 10
+  maxReplicas: 6
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100   # 一次最多翻倍
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50    # 一次最多减半
+          periodSeconds: 60
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 60
+          averageUtilization: 50

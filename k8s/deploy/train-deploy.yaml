@@ -4,7 +4,7 @@ metadata:
   name: train-service
   namespace: fxtravel
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: train-service
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: train
-          image: <YOUR_TRAIN_IMAGE:TAG>   # TODO 改成真实镜像
+          image: train-service:latest   # TODO 改成真实镜像
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -39,6 +39,17 @@ spec:
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 20
+          env:
+            - name: SERVICE_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: degrade-config
+                  key: TRAIN_MODE
+            - name: DISABLE_RECOMMEND
+              valueFrom:
+                configMapKeyRef:
+                  name: degrade-config
+                  key: DISABLE_RECOMMEND
 ---
 apiVersion: v1
 kind: Service
