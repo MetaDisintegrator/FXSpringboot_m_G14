@@ -46,8 +46,8 @@ else
         exit 1
     fi
     echo "▶ 使用默认Dockerfile: $DEFAULT_DOCKERFILE"
-    docker build --no-cache -f "$DEFAULT_DOCKERFILE" \
-     -t "$SVC_NAME:$IMAGE_TAG"  .
+    echo "当前位置: $(pwd)"
+    docker build --no-cache -f "$DEFAULT_DOCKERFILE" -t "$SVC_NAME:$IMAGE_TAG"  ./
 fi
 
 
@@ -69,7 +69,7 @@ if [ ${#WORKER_NODES[@]} -gt 0 ]; then
         nodes=($worker_nodes_str)
         for node in "\${nodes[@]}"; do
             echo "分发到工作节点: \$node"
-            scp ~/fx/$IMAGE_TAR "\$node:~/fx/" &
+            scp ~/fx/$IMAGE_TAR "\$node:~/fx/"
         done
         wait  # 等待所有后台任务完成
 EOF
@@ -82,7 +82,7 @@ if [ ${#WORKER_NODES[@]} -gt 0 ]; then
           nodes=($worker_nodes_str)
           for node in "\${nodes[@]}"; do
               echo "加载到工作节点: \$node"
-              ssh "\$node" "docker load -i ~/fx/$IMAGE_TAR" &
+              ssh "\$node" "docker load -i ~/fx/$IMAGE_TAR"
           done
           wait
 EOF
@@ -91,6 +91,7 @@ fi
 # 5. 更新K8s部署
 echo "========== 更新K8s部署 =========="
 ssh "$MAIN_NODE" << EOF
+#    kubectl delete -f $YAML_PATH || echo "删除旧部署失败"
     sed -i 's|image: $SVC_NAME:.*|image: $SVC_NAME:$IMAGE_TAG|g' $YAML_PATH || echo "YAML文件修改失败"
     kubectl apply -f $YAML_PATH || echo "新部署应用失败"
 EOF
@@ -103,8 +104,7 @@ if [ ${#WORKER_NODES[@]} -gt 0 ]; then
           for node in "\${nodes[@]}"; do
               echo "清理工作节点: \$node"
               ssh "\$node" << 'INNER_EOF'
-                  docker images "$SVC_NAME" --format "{{.ID}}" | sort -r | tail -n +4 | xargs -r docker rmi -f
-                  docker image prune -f
+                  docker images --filter "until=3h" --format "{{.ID}}" | xargs -r docker rmi || echo "镜像清理失败"
 INNER_EOF
           done
 EOF
@@ -112,3 +112,4 @@ fi
 
 echo "========== $SVC_NAME 部署完成 =========="
 echo "YAML文件已更新: $YAML_PATH"
+cd ..

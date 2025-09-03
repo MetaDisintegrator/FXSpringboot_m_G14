@@ -5,7 +5,7 @@ server:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8061/eureka/
+      defaultZone: http://m-dscv-svc:8761/eureka/
   instance:
     instanceId: ${spring.application.name}:${spring.application.instance_id:${random.value}}
 
@@ -24,7 +24,7 @@ spring:
     name:hotel-service
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/fx_hotel_service?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf-8&autoReconnect=true
+    url: jdbc:mysql://m-hotel-sql:3306/fx_hotel_service?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf-8&autoReconnect=true
     username: 'root'
     # password: 'ss72ss05yy06'
     password: 'yyyYYY&0121'

@@ -1,9 +1,9 @@
 server:
-  port: 8061
+  port: 8761
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: m-dscv-svc
   client:
     registerWithEureka: false
     fetchRegistry: false

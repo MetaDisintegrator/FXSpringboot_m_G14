@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: discovery-service
+  cloud:
+    config:
+      enabled: false
+  output:
+    ansi:
+      enabled: always
+
+server:
+  port: 8761  # Eureka 默认端口
+
+eureka:
+  instance:
+    hostname: m-dscv-svc  # 后续会替换为 Kubernetes 服务名
+  client:
+    registerWithEureka: false  # 禁止自我注册
+    fetchRegistry: false       # 禁止从其他节点获取注册表
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+
+logging:
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){blue} %clr(${LOG_LEVEL_PATTERN:-%5p}) %m%n"

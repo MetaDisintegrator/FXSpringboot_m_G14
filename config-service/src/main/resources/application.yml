@@ -2,11 +2,20 @@ server:
   port: 8088
 
 spring:
-  profiles:
-    active: native
+  application:
+    name: m-config-svc
   output:
     ansi:
       enabled: always
+  profiles:
+    active: native  # 激活 native 模式
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: file:/config/apps/  # 指定本地配置文件目录
+#eureka:
+#  client:
 
 logging:
   pattern:

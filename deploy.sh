@@ -7,6 +7,7 @@ IMAGE_TAG=$(date +%Y%m%d%H%M%S)
 MAIN_NODE="root@192.168.184.131"        # 主节点使用主机名
 WORKER_NODES=("worker1" "worker2")
 SVC_NAMES=("config-service" "discovery-service" "gateway-service" "user-service" "hotel-service" "train-service")
+#SVC_NAMES=("discovery-service" "gateway-service" "user-service" "hotel-service" "train-service")
 
 # 函数：错误处理
 handle_error() {
@@ -40,6 +41,11 @@ for SVC_NAME in "${SVC_NAMES[@]}"; do
         exit 1
     fi
 done
+
+echo "========== 清理所有Pod =========="
+ssh  $MAIN_NODE << EOF
+    kubectl delete pod --all -n default
+EOF
 
 echo "========== 部署完成 =========="
 echo "新镜像标签: $IMAGE_TAG"

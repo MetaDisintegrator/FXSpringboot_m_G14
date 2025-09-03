@@ -5,8 +5,8 @@ FROM openjdk:17-jdk-slim
 COPY target/*.jar app.jar
 
 # 复制配置文件到镜像中
-COPY src/main/resources/config-prod/ ./config/
-COPY src/main/resources/application.yml ./config/application.yml
+COPY src/main/resources/config-prod/ /config/
+COPY src/main/resources/application.yml /config/application.yml
 
 # 暴露应用端口
 EXPOSE 8088
