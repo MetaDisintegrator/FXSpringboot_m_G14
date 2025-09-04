@@ -16,7 +16,8 @@
 
     <modules>
         <module>config-service</module>
-        <module>discovery-service</module>
+        <module>eureka-client</module>
+        <module>eureka-service</module>
         <module>user-service</module>
         <module>train-service</module>
         <module>hotel-service</module>
