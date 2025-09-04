@@ -97,18 +97,18 @@ ssh "$MAIN_NODE" << EOF
 EOF
 
 # 6. 清理旧镜像（保留最新3个）
-echo "========== 清理旧镜像 =========="
-if [ ${#WORKER_NODES[@]} -gt 0 ]; then
-  ssh "$MAIN_NODE" << EOF
-          nodes=($worker_nodes_str)
-          for node in "\${nodes[@]}"; do
-              echo "清理工作节点: \$node"
-              ssh "\$node" << 'INNER_EOF'
-                  docker images --filter "until=3h" --format "{{.ID}}" | xargs -r docker rmi || echo "镜像清理失败"
-INNER_EOF
-          done
-EOF
-fi
+#echo "========== 清理旧镜像 =========="
+#if [ ${#WORKER_NODES[@]} -gt 0 ]; then
+#  ssh "$MAIN_NODE" << EOF
+#          nodes=($worker_nodes_str)
+#          for node in "\${nodes[@]}"; do
+#              echo "清理工作节点: \$node"
+#              ssh "\$node" << 'INNER_EOF'
+#                  docker images --filter "until=3h" --format "{{.ID}}" | xargs -r docker rmi || echo "镜像清理失败"
+#INNER_EOF
+#          done
+#EOF
+#fi
 
 echo "========== $SVC_NAME 部署完成 =========="
 echo "YAML文件已更新: $YAML_PATH"
