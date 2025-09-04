@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 COPY target/*.jar app.jar
 
 # 复制配置文件到镜像中的绝对路径
-COPY src/main/resources/application-local.yml /config/application.yml
+COPY src/main/resources/bootstrap-local.yml /config/bootstrap.yml
 
 # 暴露应用端口
 EXPOSE 8080

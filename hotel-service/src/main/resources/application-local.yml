@@ -1,5 +1,0 @@
-spring:
-  config:
-    import: "optional:configserver:http://m-config-svc:8088"
-  application:
-    name: hotel-service
