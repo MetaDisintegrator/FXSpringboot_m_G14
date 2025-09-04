@@ -10,7 +10,11 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
+    <groupId>org.FXTravel.springcloud</groupId>
     <artifactId>gateway-service</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>gateway-service</name>
+    <description>gateway-service</description>
 
     <dependencies>
         <dependency>

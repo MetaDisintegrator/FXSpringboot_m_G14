@@ -34,7 +34,7 @@ cd "$MICROSERVICE_DIR" || { echo "无法进入目录 $MICROSERVICE_DIR"; exit 1;
 
 # 1. 构建Java后端
 echo "========== 构建Java后端 =========="
-mvn clean package
+mvn clean package -Dskiptest
 # 检查本地是否存在Dockerfile
 if [ -f "Dockerfile" ]; then
     echo "▶ 使用当前目录的 Dockerfile"

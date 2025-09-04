@@ -1,6 +1,9 @@
+server:
+  port: 8060
+
 spring:
   application:
-    name: user-service
+    name: gateway-service
   config:
     import: optional:configserver:http://m-config-svc:8901
   cloud:
