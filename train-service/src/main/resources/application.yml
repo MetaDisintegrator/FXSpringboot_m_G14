@@ -3,3 +3,5 @@ spring:
     name: train-service
   config:
     import: "optional:configserver:http://localhost:8088"
+  app:
+    degrade-all: ${DEGRADE_ALL:false}   # 环境变量控制全量降级（默认 false）

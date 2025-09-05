@@ -1,0 +1,103 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: load-all
+  namespace: fxtravel
+spec:
+  parallelism: 6          # ← 同时跑 3 个压测 Pod
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        # 1) 用户登录：POST（有请求体）
+        - name: load-user
+          image: curlimages/curl:8.10.1
+          env:
+            - { name: DURATION, value: "500" }
+            - { name: WORKERS,  value: "300" }
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              : ${DURATION:=240}; : ${WORKERS:=35}
+              URL=http://user-service:8080/api/user/login
+              BODY='{"username":"test","password":"test"}'
+              run(){
+                start=$(date +%s); end=$((start + DURATION))
+                while [ $(date +%s) -lt $end ]; do
+                  curl -s -o /dev/null -w "%{http_code}\n" --http1.1 -m 5 \
+                    -H "Content-Type: application/json" \
+                    -X POST -d "$BODY" "$URL"
+                done
+              }
+              i=1; while [ $i -le $WORKERS ]; do run & i=$((i+1)); done; wait
+
+        # 2) 查列车：按出发时间 —— GET（带查询参数）
+        - name: load-train-by-departure
+          image: curlimages/curl:8.10.1
+          env:
+            - { name: DURATION, value: "500" }
+            - { name: WORKERS,  value: "300" }
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              : ${DURATION:=240}; : ${WORKERS:=35}
+              BASE=http://train-service:8080/api/train/searchByDeparture
+              run(){
+                start=$(date +%s); end=$((start + DURATION))
+                while [ $(date +%s) -lt $end ]; do
+                  # 示例参数：from/to/date，可按你实际接口改名
+                  curl -s -o /dev/null -w "%{http_code}\n" --http1.1 -m 5 -G \
+                    --data-urlencode "from=PEK" \
+                    --data-urlencode "to=SHA" \
+                    --data-urlencode "date=2025-09-05" \
+                    "$BASE"
+                done
+              }
+              i=1; while [ $i -le $WORKERS ]; do run & i=$((i+1)); done; wait
+
+        # 3) 查列车：按时长 —— GET（注意这行原来写错成 searchByDeparture 了）
+        - name: load-train-by-duration
+          image: curlimages/curl:8.10.1
+          env:
+            - { name: DURATION, value: "500" }
+            - { name: WORKERS,  value: "300" }
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              : ${DURATION:=240}; : ${WORKERS:=35}
+              BASE=http://train-service:8080/api/train/searchByDuration
+              run(){
+                start=$(date +%s); end=$((start + DURATION))
+                while [ $(date +%s) -lt $end ]; do
+                  curl -s -o /dev/null -w "%{http_code}\n" --http1.1 -m 5 -G \
+                    --data-urlencode "from=PEK" \
+                    --data-urlencode "to=SHA" \
+                    --data-urlencode "maxDuration=180" \
+                    "$BASE"
+                done
+              }
+              i=1; while [ $i -le $WORKERS ]; do run & i=$((i+1)); done; wait
+
+        # 4) 查酒店：按目的地 —— GET
+        - name: load-hotel-by-dest
+          image: curlimages/curl:8.10.1
+          env:
+            - { name: DURATION, value: "500" }
+            - { name: WORKERS,  value: "120" }
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              : ${DURATION:=240}; : ${WORKERS:=35}
+              BASE=http://hotel-service:8080/api/hotel/searchByDestination
+              run(){
+                start=$(date +%s); end=$((start + DURATION))
+                while [ $(date +%s) -lt $end ]; do
+                  curl -s -o /dev/null -w "%{http_code}\n" --http1.1 -m 5 -G \
+                    --data-urlencode "dest=Shanghai" \
+                    --data-urlencode "checkIn=2025-09-06" \
+                    --data-urlencode "nights=2" \
+                    "$BASE"
+                done
+              }
+              i=1; while [ $i -le $WORKERS ]; do run & i=$((i+1)); done; wait

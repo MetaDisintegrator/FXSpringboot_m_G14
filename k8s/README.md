@@ -15,30 +15,6 @@ kubectl patch deployment metrics-server -n kube-system --type='json' -p @"
 "@
 kubectl -n kube-system rollout status deploy/metrics-server
 
-## 2) 构建四个本地镜像（在四个服务目录分别执行或改成你的真实目录）,需要手动 build docker
-cd ..\gateway-service ; docker build -t gateway-service:latest .
-cd ..\hotel-service   ; docker build -t hotel-service:latest .
-cd ..\train-service   ; docker build -t train-service:latest .
-cd ..\user-service    ; docker build -t user-service:latest .
-
-## 3) 先把 config & hpa 应用到 fxtravel（确保 YAML 里没 namespace 的话，这里加 -n）
-kubectl apply -n fxtravel -f .\k8s\config\degrade-config.yaml
-kubectl apply -n fxtravel -f .\k8s\hpa\gateway-hpa.yaml
-kubectl apply -n fxtravel -f .\k8s\hpa\hotel-hpa.yaml
-kubectl apply -n fxtravel -f .\k8s\hpa\train-hpa.yaml
-kubectl apply -n fxtravel -f .\k8s\hpa\user-hpa.yaml
-
-## 4) 部署四个服务（如果 YAML 没写 namespace，记得加 -n fxtravel）
-kubectl apply -n fxtravel -f .\k8s\deploy\gateway-deploy.yaml
-kubectl apply -n fxtravel -f .\k8s\deploy\hotel-deploy.yaml
-kubectl apply -n fxtravel -f .\k8s\deploy\train-deploy.yaml
-kubectl apply -n fxtravel -f .\k8s\deploy\user-deploy.yaml
-
-## 5) 强制把镜像指向你本地刚 build 的名字（防止 YAML 里还是占位符）
-kubectl set image deploy/gateway-service gateway=gateway-service:latest -n fxtravel
-kubectl set image deploy/hotel-service   hotel=hotel-service:latest   -n fxtravel
-kubectl set image deploy/train-service   train=train-service:latest   -n fxtravel
-kubectl set image deploy/user-service    user=user-service:latest     -n fxtravel
 
 ## 6) 给容器加上 HPA 需要的 CPU requests（若 YAML 已经写了可跳过）
 kubectl set resources deploy/gateway-service -n fxtravel --containers=gateway --requests=cpu=200m,memory=256Mi --limits=cpu=1,memory=512Mi
@@ -81,3 +57,64 @@ kubectl delete pvc --all -n fxtravel
 ## 5) 确认已清空
 kubectl get all -n fxtravel
 kubectl get hpa,cm,secret,pvc,ingress -n fxtravel
+
+
+
+# 下面是步骤
+
+# train
+cd train-service
+mvn clean package -DskipTests
+docker build -t ehernng/train-service:1.0.1 .
+docker push ehernng/train-service:1.0.1
+
+# hotel
+cd ../hotel-service
+mvn clean package -DskipTests
+docker build -t ehernng/hotel-service:1.0.1 .
+docker push ehernng/hotel-service:1.0.1
+
+# user
+cd ../user-service
+mvn clean package -DskipTests
+docker build -t ehernng/user-service:1.0.1 .
+docker push ehernng/user-service:1.0.1
+
+kubectl get ns fxtravel 2>$null
+kubectl config set-context --current --namespace=fxtravel
+
+kubectl apply -f ./k8s/metrics-server.yaml
+kubectl -n kube-system rollout status deploy/metrics-server
+
+## 3) 部署四个服务（如果 YAML 没写 namespace，记得加 -n fxtravel）
+kubectl apply -n fxtravel -f .\k8s\hotel-service.yaml
+kubectl apply -n fxtravel -f .\k8s\train-service.yaml
+kubectl apply -n fxtravel -f .\k8s\user-service.yaml
+
+# 等30秒
+kubectl get pods -n fxtravel -o wide
+kubectl top pods -n fxtravel
+kubectl get hpa -n fxtravel
+
+* 这边就已经部署好了，后面测试
+
+kubectl apply -f ./pressure-test/load-all-job.yaml
+
+while ($true) { kubectl -n fxtravel get hpa; Start-Sleep 1 }
+# 也看看 CPU 绝对值（确认确实被打到了）
+while ($true) { kubectl -n fxtravel top pods; Start-Sleep 1 }
+
+
+
+# 降级服务
+kubectl -n fxtravel set env deploy/train-service JAVA_TOOL_OPTIONS="-Dapp.degrade-all=true"
+kubectl -n fxtravel set env deploy/hotel-service JAVA_TOOL_OPTIONS="-Dapp.degrade-all=true"
+
+kubectl -n fxtravel rollout status deploy/train-service
+kubectl -n fxtravel rollout status deploy/hotel-service
+
+
+kubectl apply -f pressure-test/degrade-test.yaml
+kubectl -n fxtravel logs job/verify-degrade-train-hotel -f
+
+

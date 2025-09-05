@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: verify-degrade-train-hotel
+  namespace: fxtravel
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        # train by-departure-time
+        - name: verify-train-departure
+          image: curlimages/curl:8.10.1
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              ok=0; total=20
+              BODY='{"departureStation":"sha","arrivalStation":"sz","departureDate":"2025-09-05"}'
+              for i in $(seq 1 $total); do
+                rsp=$(curl -s -H "Content-Type: application/json" -H "X-User-Id: 1" -d "$BODY" \
+                  http://train-service:8080/api/train/seat/by-departure-time)
+                echo "[train-dep] $rsp"
+                echo "$rsp" | grep -q '"degraded":\s*true' && ok=$((ok+1))
+              done
+              echo "train-departure degraded_true=$ok/$total"; test "$ok" -ge 16
+        # train by-duration-time
+        - name: verify-train-duration
+          image: curlimages/curl:8.10.1
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              ok=0; total=20
+              BODY='{"departureStation":"sha","arrivalStation":"sz","departureDate":"2025-09-05"}'
+              for i in $(seq 1 $total); do
+                rsp=$(curl -s -H "Content-Type: application/json" -H "X-User-Id: 1" -d "$BODY" \
+                  http://train-service:8080/api/train/seat/by-duration-time)
+                echo "[train-dur] $rsp"
+                echo "$rsp" | grep -q '"degraded":\s*true' && ok=$((ok+1))
+              done
+              echo "train-duration degraded_true=$ok/$total"; test "$ok" -ge 16
+        # hotel by-dest
+        - name: verify-hotel-dest
+          image: curlimages/curl:8.10.1
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              ok=0; total=20
+              BODY='{"destination":"shanghai","namePattern":""}'
+              for i in $(seq 1 $total); do
+                rsp=$(curl -s -H "Content-Type: application/json" -H "X-User-Id: 1" -d "$BODY" \
+                  http://hotel-service:8080/api/hotel/room/by-dest)
+                echo "[hotel] $rsp"
+                echo "$rsp" | grep -q '"degraded":\s*true' && ok=$((ok+1))
+              done
+              echo "hotel degraded_true=$ok/$total"; test "$ok" -ge 16
